@@ -6,7 +6,7 @@ A free arcade game for Android and the browser: fly a white stork between minare
 
 - **Solo:** medals at 10, 20, 30 and 40 minarets unlock new storks.
 - **Race the AI:** four opponents, from Beginner to Seasoned.
-- **1v1 online:** make a room, share the 4-letter code, and race a friend on another phone. Last stork flying wins.
+- **1v1 online:** make a room, share the 4-letter code, and race a friend on another device. Last stork flying wins.
 
 Every drawing and sound is made with code, and it works offline.
 

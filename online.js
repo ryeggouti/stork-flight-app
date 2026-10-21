@@ -1,14 +1,14 @@
 /* =====================================================================
    ONLINE 1v1
-   Two phones connect directly to each other (WebRTC) with PeerJS. PeerJS's free
+   Two devices (phones, computers, anything with a browser) connect directly to each other (WebRTC) with PeerJS. PeerJS's free
    public server is only used to find each other by room code; the game data
-   goes straight between the phones. No accounts: each player can pick a short name
-   (saved on their own phone), and only the rival in their room sees it.
+   goes straight between the devices. No accounts: each player can pick a short name
+   (saved on their own device), and only the rival in their room sees it.
 
    How a round works:
-   - the host sends a random seed and the level, so both phones build the same course
-   - each phone flies its own stork and sends where it is, 30 times a second
-   - the other phone draws it as the see-through "Rival" stork
+   - the host sends a random seed and the level, so both devices build the same course
+   - each device flies its own stork and sends where it is, 30 times a second
+   - the other device draws it as the see-through "Rival" stork
    - when you crash you keep watching until your rival crashes too
    - whoever flew more steps wins; the series score counts up until someone leaves
    ===================================================================== */
@@ -225,7 +225,7 @@ function renderLobby() {
   on("lStart", hostStart);
   const code = $("lCode"); if (code) code.addEventListener("input", () => { code.value = code.value.toUpperCase().replace(/[^A-Z]/g, ""); });
 }
-// your name: saved on this phone, and sent to your rival when it changes
+// your name: saved on this device, and sent to your rival when it changes
 const nameIn = $("myName");
 nameIn.value = myName;
 nameIn.addEventListener("input", () => { nameIn.value = nameIn.value.replace(/[^\p{L}\p{N} _.-]/gu, "").slice(0, 12); });

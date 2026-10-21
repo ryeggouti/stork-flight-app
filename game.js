@@ -182,7 +182,7 @@ if (!unlocked(skin)) skin = "classic";
 function rand(seed) { let x = Math.sin(seed * 9301 + 49297) * 233280; return x - Math.floor(x); }
 
 let towerCount = 0;
-// where the gaps go: random, except online, where both phones use the same seed so they fly the same course
+// where the gaps go: random, except online, where both devices use the same seed so they fly the same course
 let courseRandom = Math.random;
 function seeded(seed) {   // mulberry32: a small, fast random generator that gives the same numbers for the same seed
   return () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
@@ -768,7 +768,7 @@ function drawUI(now) {
     return;
   }
   ctx.fillStyle = state === "over" ? "rgba(8,8,10,0.78)" : "rgba(8,8,10,0.5)"; ctx.fillRect(0, -OFF_T, W, H + OFF_T + OFF_B);
-  if (state === "count") {           // online: 3, 2, 1, then both phones start
+  if (state === "count") {           // online: 3, 2, 1, then both devices start
     const left = Math.max(0, countEnd - now), n = Math.ceil(left / 1000), f = (left % 1000) / 1000;
     text(`You vs ${rivalName()}`, W / 2, 150, 22, "#e8e2d6");
     text(`${LEVEL()} · same course · last one flying wins`, W / 2, 178, 13, "#cfc9bd", "center", "SANS");
@@ -794,7 +794,7 @@ function drawUI(now) {
     ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(170, H / 2 + 8, 7, 0, 7); ctx.fill();
     text("tap!", 210, H / 2 + 16, 24, "#fff", "left");
     capA += ((mode === "solo" ? 0 : 1) - capA) * (REDUCED ? 1 : Math.min(1, frameMs / 110));   // cross-fade
-    if (mode !== "solo") capLabel = mode === "race" ? "Choose your opponent" : mode === "online" ? "Race a friend on another phone" : "Choose which AI to watch";
+    if (mode !== "solo") capLabel = mode === "race" ? "Choose your opponent" : mode === "online" ? "Race a friend on another device" : "Choose which AI to watch";
     ctx.save();
     ctx.globalAlpha = 1 - capA; text("Fly between the minarets and the storm clouds.", W / 2, 380, 15, "#e8e2d6", "center", "SANS");
     ctx.globalAlpha = capA; text(capLabel, W / 2, 350, 14, "#e8e2d6", "center", "SANS");
@@ -868,7 +868,7 @@ function draw(now) {
    ===================================================================== */
 let pending = false, last = 0, acc = 0;
 function startFlight() {
-  // online: the course comes from the seed both phones share; otherwise it's random
+  // online: the course comes from the seed both devices share; otherwise it's random
   courseRandom = mode === "online" && NET.seed != null ? seeded(NET.seed) : Math.random; towerCount = 0;
   hideGameOver(); reset(); distance = prevDistance = 0;
   s.y = s.prevY = H / 2;

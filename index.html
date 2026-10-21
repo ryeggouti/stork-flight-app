@@ -24,7 +24,7 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Stork Flight">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="styles.css?v=29">
+<link rel="stylesheet" href="styles.css?v=30">
 </head>
 <body>
 <div class="stage-wrap">
@@ -91,7 +91,7 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
 
     <section class="panel" id="online" aria-label="Online 1v1">
       <h2>1v1 <span>online</span></h2>
-      <p>Race a friend on another phone. You both fly the same course at the same time, and the last stork flying wins.</p>
+      <p>Race a friend on another device. You both fly the same course at the same time, and the last stork flying wins.</p>
       <label class="lobby-name">Your name
         <input id="myName" maxlength="12" autocomplete="off" spellcheck="false" placeholder="e.g. Ryan" aria-describedby="nameNote">
       </label>
@@ -110,7 +110,7 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
         <li class="web-only"><kbd>M</kbd> sound on or off · <kbd>Esc</kbd> back to the menu</li>
         <li class="app-only">The back button closes a page or leaves a run.</li>
         <li><b>Race the AI:</b> a see-through stork flies next to you. It's an AI I trained, and it sees only 5 numbers. Pick your opponent, from Beginner to Seasoned.</li>
-        <li><b>1v1:</b> race a friend on another phone. One of you makes a room and shares the 4-letter code, the other joins. Same course, same time: the last stork flying wins.</li>
+        <li><b>1v1:</b> race a friend on another device. One of you makes a room and shares the 4-letter code, the other joins. Same course, same time: the last stork flying wins.</li>
       </ul>
       <h3>Medals</h3>
       <ul class="medals">
@@ -200,9 +200,9 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
   <button class="sound" id="soundBtn" aria-label="Sound on" aria-pressed="true"></button>
 </nav>
 
-<script src="networks.js?v=29"></script>
-<script src="game.js?v=29"></script>
-<script src="online.js?v=29"></script>
+<script src="networks.js?v=30"></script>
+<script src="game.js?v=30"></script>
+<script src="online.js?v=30"></script>
 <script>
 // Installable app: show "Install app" when the browser offers it (the offline helper is registered at the end of game.js)
 let installPrompt = null;
