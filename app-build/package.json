@@ -6,6 +6,7 @@
     "@capacitor/android": "^7.0.0",
     "@capacitor/cli": "^7.0.0",
     "@capacitor/core": "^7.0.0",
+    "@capacitor/haptics": "^7.0.0",
     "@fontsource/fredoka": "^5.0.0",
     "@fontsource/lilita-one": "^5.0.0"
   }
