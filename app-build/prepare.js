@@ -5,7 +5,7 @@ const root = path.join(__dirname, ".."), www = path.join(__dirname, "www");
 fs.rmSync(www, { recursive: true, force: true });
 fs.mkdirSync(path.join(www, "fonts"), { recursive: true });
 
-const files = ["index.html", "styles.css", "game.js", "networks.js", "favicon.svg", "favicon-32.png", "apple-touch-icon.png"];
+const files = ["index.html", "styles.css", "game.js", "online.js", "networks.js", "favicon.svg", "favicon-32.png", "apple-touch-icon.png"];
 for (const f of files) fs.copyFileSync(path.join(root, f), path.join(www, f));
 
 const fonts = [["Lilita One", "lilita-one", 400], ["Fredoka", "fredoka", 500], ["Fredoka", "fredoka", 600], ["Fredoka", "fredoka", 700]];
