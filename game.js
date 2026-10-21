@@ -796,16 +796,17 @@ function drawUI(now) {
     ctx.globalAlpha = capA; text(capLabel, W / 2, 350, 14, "#e8e2d6", "center", "SANS");
     ctx.restore();
     if (!APP) pill(LEVEL(), W / 2, 420, true);   // in the app, real Easy / Medium / Hard buttons sit here
-    const pulse = 0.6 + 0.4 * Math.sin(now / 300);
-    ctx.save(); ctx.globalAlpha = REDUCED ? 1 : pulse;
-    const verb = mode === "watch" ? "watch" : mode === "race" ? "race" : "fly";
-    text(mode === "online" ? (NET.connected ? (NET.host ? "Tap to start the match" : "Waiting for the host to start") : "Tap to open the lobby")
-         : TOUCH ? `Tap to ${verb}` : `Tap or press space to ${verb}`, W / 2, 472, 22, "#fff");   // no "space" on phones
-    ctx.restore();
+    // the pulsing "tap!" hint already says how to start, so only 1v1 gets a line here: what happens next
+    const status = mode === "online" ? (NET.connected ? (NET.host ? "Tap to start the match" : "Waiting for the host to start") : "Tap to open the lobby") : null;
+    if (status) {
+      const pulse = 0.6 + 0.4 * Math.sin(now / 300);
+      ctx.save(); ctx.globalAlpha = REDUCED ? 1 : pulse; text(status, W / 2, 472, 22, "#fff"); ctx.restore();
+    }
     if (best) {
-      text(`Best ${best}`, W / 2, 504, 15, "#cfc9bd", "center", "SANS");
+      const by = status ? 504 : 478;
+      text(`Best ${best}`, W / 2, by, 15, "#cfc9bd", "center", "SANS");
       const m = medalFor(best);
-      if (m) star(W / 2 + ctx.measureText(`Best ${best}`).width / 2 + 12, 499, 6, m.color);
+      if (m) star(W / 2 + ctx.measureText(`Best ${best}`).width / 2 + 12, by - 5, 6, m.color);
     }
     return;
   }
