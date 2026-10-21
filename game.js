@@ -143,6 +143,7 @@ let mode = "solo";                                     // "solo", "race" or "wat
 // how much practice each opponent had (training steps), from section 8 of the notebook
 const OPP_STEPS = { "0": [220000, 240000, 600000, 1000000], "0.5": [240000, 300000, 400000, 1000000], "1": [400000, 700000, 800000, 900000] };
 try { mode = localStorage.getItem("stork-mode") || "solo"; } catch (e) {}
+if (!["solo", "race", "online"].includes(mode)) mode = "solo";   // "Watch the AI" isn't in this version
 const gapSize = () => 180 - 50 * difficulty;
 const speed = () => 3 + 1 * difficulty;
 

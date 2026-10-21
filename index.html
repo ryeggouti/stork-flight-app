@@ -24,7 +24,7 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Stork Flight">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="styles.css?v=21">
+<link rel="stylesheet" href="styles.css?v=22">
 </head>
 <body>
 <div class="stage-wrap">
@@ -86,7 +86,6 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
     <div class="modes" id="modes" role="group" aria-label="Game mode">
       <button type="button" data-mode="solo" aria-pressed="true">Solo</button>
       <button type="button" data-mode="race" aria-pressed="false">Race the AI</button>
-      <button type="button" data-mode="watch" aria-pressed="false">Watch the AI</button>
       <button type="button" data-mode="online" aria-pressed="false">1v1</button>
     </div>
 
@@ -107,7 +106,6 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
         <li class="web-only"><kbd>M</kbd> sound on or off · <kbd>Esc</kbd> back to the menu</li>
         <li class="app-only">The back button closes a page or leaves a run.</li>
         <li><b>Race the AI:</b> a see-through stork flies next to you. It's an AI I trained, and it sees only 5 numbers. Pick your opponent, from Beginner to Seasoned.</li>
-        <li><b>Watch the AI:</b> the AI flies alone.</li>
         <li><b>1v1:</b> race a friend on another phone. One of you makes a room and shares the 4-letter code, the other joins. Same course, same time: the last stork flying wins.</li>
       </ul>
       <h3>Medals</h3>
@@ -198,9 +196,9 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
   <button class="sound" id="soundBtn" aria-label="Sound on" aria-pressed="true"></button>
 </nav>
 
-<script src="networks.js?v=21"></script>
-<script src="game.js?v=21"></script>
-<script src="online.js?v=21"></script>
+<script src="networks.js?v=22"></script>
+<script src="game.js?v=22"></script>
+<script src="online.js?v=22"></script>
 <script>
 // Installable app: show "Install app" when the browser offers it (the offline helper is registered at the end of game.js)
 let installPrompt = null;
