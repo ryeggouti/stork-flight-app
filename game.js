@@ -352,15 +352,21 @@ function showGameOver() {
    ===================================================================== */
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
+// On tall phone screens the game area (400 x 600) doesn't fill the screen, so the canvas
+// reaches past it: more sky above, more ground below. The game itself is unchanged.
+let OFF_T = 0, OFF_B = 0;
 function fitCanvas() {
-  const shown = canvas.parentElement.getBoundingClientRect().height || H;
-  const k = Math.min(3, Math.max(1, shown / H) * (devicePixelRatio || 1));
-  canvas.width = Math.round(W * k); canvas.height = Math.round(H * k);
+  const stage = canvas.parentElement.getBoundingClientRect(), wrap = canvas.parentElement.parentElement.getBoundingClientRect();
+  const shown = stage.height || H, unit = shown / H;
+  OFF_T = Math.max(0, Math.round((stage.top - wrap.top) / unit)); OFF_B = Math.max(0, Math.round((wrap.bottom - stage.bottom) / unit));
+  canvas.style.top = -(OFF_T * unit) + "px"; canvas.style.height = ((H + OFF_T + OFF_B) * unit) + "px";
+  const k = Math.min(3, Math.max(1, unit) * (devicePixelRatio || 1));
+  canvas.width = Math.round(W * k); canvas.height = Math.round((H + OFF_T + OFF_B) * k);
   document.getElementById("over").style.fontSize = (shown / H * 16) + "px";
   document.getElementById("modes").style.fontSize = (shown / H * 16) + "px";
   document.getElementById("opps").style.fontSize = (shown / H * 16) + "px";
   document.getElementById("skinBtn").style.fontSize = (shown / H * 16) + "px";
-  ctx.setTransform(k, 0, 0, k, 0, 0);
+  ctx.setTransform(k, 0, 0, k, 0, OFF_T * k);
 }
 fitCanvas();
 addEventListener("resize", fitCanvas);
@@ -385,7 +391,7 @@ function drawSky(night) {
   const sky = skyAt(night);
   const g = ctx.createLinearGradient(0, 0, 0, H - GROUND);
   g.addColorStop(0, sky.top); g.addColorStop(1, sky.bottom);
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H - GROUND);
+  ctx.fillStyle = g; ctx.fillRect(0, -OFF_T, W, H - GROUND + OFF_T);
   if (night > 0.45) {
     ctx.fillStyle = `rgba(255,255,240,${(night - 0.45) * 1.6})`;
     for (const st of STARS) { ctx.beginPath(); ctx.arc(st.x, st.y, st.r, 0, 7); ctx.fill(); }
@@ -393,7 +399,7 @@ function drawSky(night) {
   const sunY = lerp(330, 520, Math.min(1, night * 1.6));
   const glow = ctx.createRadialGradient(290, sunY, 10, 290, sunY, 120);
   glow.addColorStop(0, `rgba(255,220,150,${0.7 * (1 - night)})`); glow.addColorStop(1, "rgba(255,220,150,0)");
-  ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = glow; ctx.fillRect(0, -OFF_T, W, H + OFF_T);
   ctx.fillStyle = `rgba(255,236,190,${1 - night})`; ctx.beginPath(); ctx.arc(290, sunY, 34, 0, 7); ctx.fill();
   if (night > 0.6) {
     const a = (night - 0.6) * 2.5;
@@ -479,13 +485,13 @@ function drawMinaret(t, night) {
 function drawCloud(t, night) {
   const gap = t.gap, x0 = ix(t), bottom = t.gapY - gap / 2;
   const c = mix([84, 90, 116], [36, 38, 60], night);
-  ctx.fillStyle = c; ctx.fillRect(x0 - 6, 0, TOWER_W + 12, bottom - 16);
+  ctx.fillStyle = c; ctx.fillRect(x0 - 6, -OFF_T, TOWER_W + 12, bottom - 16 + OFF_T);
   for (let j = 0; j < 4; j++) {
     const cx = x0 - 6 + j * (TOWER_W + 12) / 3;
     ctx.beginPath(); ctx.arc(cx, bottom - 16, 16, 0, 7); ctx.fill();
   }
   ctx.fillStyle = "rgba(255,255,255,0.08)";
-  ctx.fillRect(x0 - 6, 0, 10, bottom - 20);
+  ctx.fillRect(x0 - 6, -OFF_T, 10, bottom - 20 + OFF_T);
 }
 function drawStork(b = s) {
   const ghost = b !== s, down = ghost ? !b.alive : state === "over";
@@ -709,9 +715,8 @@ function drawUI(now) {
     }
     return;
   }
-  ctx.fillStyle = state === "over" ? "rgba(8,8,10,0.78)" : "rgba(8,8,10,0.5)"; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = state === "over" ? "rgba(8,8,10,0.78)" : "rgba(8,8,10,0.5)"; ctx.fillRect(0, -OFF_T, W, H + OFF_T + OFF_B);
   if (state === "ready") {
-    text("fly between the minarets", W / 2, 108, 14, "#cfc9bd", "center", "SANS");
     ctx.save(); ctx.translate(W / 2, 214); ctx.rotate(-3 * Math.PI / 180);   // tilted, like the page headings
     text("Stork", 0, -36, 80, "#fff");
     text("Flight", 0, 36, 80, "#f0a24a");
@@ -771,7 +776,7 @@ function draw(now) {
   
   for (const t of s.towers) { drawCloud(t, night); drawMinaret(t, night); }
   
-  ctx.fillStyle = mix([178, 120, 70], [40, 34, 44], night * 0.7); ctx.fillRect(0, H - GROUND, W, GROUND);
+  ctx.fillStyle = mix([178, 120, 70], [40, 34, 44], night * 0.7); ctx.fillRect(0, H - GROUND, W, GROUND + OFF_B);
   ctx.fillStyle = mix([206, 150, 96], [56, 48, 60], night * 0.7); ctx.fillRect(0, H - GROUND, W, 6);
   ctx.fillStyle = "rgba(0,0,0,0.08)";
   layer(1, 40, x => ctx.fillRect(x, H - GROUND + 18, 20, 4));
@@ -787,7 +792,7 @@ function draw(now) {
   drawParticles("confetti");             // above the dimming, so it stays bright
   if (state === "ready") drawStork();
   if (flash > 0) {
-    ctx.fillStyle = `rgba(255,255,255,${flash * 0.7})`; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = `rgba(255,255,255,${flash * 0.7})`; ctx.fillRect(0, -OFF_T, W, H + OFF_T + OFF_B);
     flash = Math.max(0, flash - 0.08 * frameScale);
   }
 }
