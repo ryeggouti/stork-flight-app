@@ -122,6 +122,19 @@ function aiDecide(b, towers) {
   b.obs = obs; b.pFlap = 1 / (1 + Math.exp(l[0] - l[1]));
   return l[1] > l[0];
 }
+// Haptics: in the Android app, the phone's haptic engine (Capacitor Haptics plugin);
+// in browsers that allow it, a plain vibration. (Safari on iPhone allows neither.)
+const HAPTICS = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Haptics;
+const BUZZ = { crash: [50, 40, 60], record: 40, unlock: 30 };
+function vibrate(kind) { try { if (navigator.vibrate) navigator.vibrate(BUZZ[kind]); } catch (e) {} }
+function buzz(kind) {
+  if (!HAPTICS) return vibrate(kind);
+  try {
+    const p = kind === "crash" ? HAPTICS.impact({ style: "HEAVY" }) : HAPTICS.notification({ type: "SUCCESS" });
+    if (kind === "crash") setTimeout(() => { try { HAPTICS.impact({ style: "MEDIUM" }); } catch (e) {} }, 110);
+    if (p && p.catch) p.catch(() => vibrate(kind));
+  } catch (e) { vibrate(kind); }
+}
 let mode = "solo";                                     // "solo", "race" or "watch"
 // how much practice each opponent had (training steps), from section 8 of the notebook
 const OPP_STEPS = { "0": [220000, 240000, 600000, 1000000], "0.5": [240000, 300000, 400000, 1000000], "1": [400000, 700000, 800000, 900000] };
@@ -220,13 +233,13 @@ function step(flap) {
       if (fresh) {
         s.toast = { skin: fresh, at: performance.now() };
         setTimeout(() => sfx("unlock"), 160);
-        if (navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} }
+        buzz("unlock");
       }
       rS += 1; if (g && g.alive) rG += 1;
       if (mode !== "watch" && s.startBest > 0 && s.score === s.startBest + 1) {   // just beat the old best, still flying
         s.recordAt = performance.now();
         setTimeout(() => sfx("record"), 90);
-        if (navigator.vibrate) { try { navigator.vibrate(40); } catch (e) {} }
+        buzz("record");
       }
       if (!fresh && MEDALS.some(m => m.min === s.score)) setTimeout(() => sfx("medal"), 120);
     }
@@ -249,9 +262,7 @@ function die() {
   flash = REDUCED ? 0 : 1;
   sfx("hit");
   
-  if (navigator.vibrate) {
-    try { navigator.vibrate([50, 40, 60]); } catch(e) {}
-  }
+  buzz("crash");
 
   setTimeout(() => sfx("fall"), 180);
   
