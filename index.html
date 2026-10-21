@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stork Flight</title>
+<meta name="description" content="A stork flies over a Moroccan city at sunset. The same game an AI learned to play with reinforcement learning.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1c1a17">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Stork Flight">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1c1a17">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Stork Flight">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="styles.css?v=11">
+</head>
+<body>
+<div class="stage-wrap">
+  <div class="stage">
+    <canvas id="game" tabindex="0" aria-label="Stork Flight game. Press space, click or tap to flap. Press M to turn sound on or off."></canvas>
+
+    <div class="over" id="over" hidden>
+      <h2 class="title">Ouch!</h2>
+      <section class="modal" aria-label="Game over results">
+        <span class="tag" id="oLevel">Easy</span>
+        <div class="grid">
+          <div class="left">
+            <div class="medal" id="oMedal" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4.5 4.5h15v15h-15zM12 1.4 22.6 12 12 22.6 1.4 12z"/><circle cx="12" cy="12" r="4.2" fill="rgba(0,0,0,0.28)"/></svg>
+              <span class="lock"><svg viewBox="0 0 24 24"><path d="M17 8h-1V6a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2ZM10 6a2 2 0 0 1 4 0v2h-4Zm2 11a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg></span>
+            </div>
+            <div class="status" id="oStatus">No medal yet</div>
+            <div class="bar-track" id="oTrack" role="progressbar" aria-valuemin="0">
+              <div class="bar-fill" id="oFill"></div>
+              <div class="goal" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4.5 4.5h15v15h-15zM12 1.4 22.6 12 12 22.6 1.4 12z"/></svg></div>
+            </div>
+            <div class="sub" id="oSub">10 more for bronze</div>
+            <div class="minarets">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1 9 5h2v3H8v3H6v11h12V11h-2V8h-3V5h2L12 1Z"/><path d="M10 15h4v7h-4z" fill="#464149"/></svg>
+              <span id="oPassed">0 minarets passed</span>
+            </div>
+          </div>
+          <div class="right">
+            <div class="lbl">score</div>
+            <div class="score" id="oScore">0</div>
+            <div class="lbl" id="oBestLbl">best</div>
+            <div class="best-row"><span class="new" id="oNew" hidden>new!</span><span class="best" id="oBest">0</span></div>
+          </div>
+        </div>
+        <div class="race" id="oRace" hidden><span>You <b id="oYou">0</b><span id="oVs"> · <span id="oAiLabel">AI</span> <b id="oAi">0</b></span></span><span class="verdict" id="oVerdict"></span></div>
+        <div class="race unlock" id="oUnlock" hidden><span>Unlocked: <b id="oUnlockName"></b></span><button type="button" class="try" id="oUnlockTry">Use it</button></div>
+        <div class="divider"></div>
+        <div class="actions">
+          <button class="btn retry" id="oRetry" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A8 8 0 1 0 20 12h-2a6 6 0 1 1-1.76-4.24L13 11h7V4l-2.35 2.35Z"/></svg>
+            <span>Fly again</span>
+          </button>
+          <button class="btn home-btn" id="oHome" type="button" aria-label="Back to menu" title="Menu">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <div class="modes opps gone" id="opps" role="group" aria-label="AI opponent">
+      <button type="button" data-opp="Beginner">Beginner</button>
+      <button type="button" data-opp="Intermediate">Intermediate</button>
+      <button type="button" data-opp="Experienced">Experienced</button>
+      <button type="button" data-opp="Seasoned">Seasoned</button>
+    </div>
+    <div class="modes" id="modes" role="group" aria-label="Game mode">
+      <button type="button" data-mode="solo" aria-pressed="true">Solo</button>
+      <button type="button" data-mode="race" aria-pressed="false">Race the AI</button>
+      <button type="button" data-mode="watch" aria-pressed="false">Watch the AI</button>
+    </div>
+
+    <section class="panel" id="how" aria-label="How to play">
+      <h2>How to <span>play</span></h2>
+      <ul>
+        <li><kbd>Space</kbd> <kbd>↑</kbd> click or tap: the stork flaps once.</li>
+        <li>Let go and it glides down. Gravity never stops.</li>
+        <li>Fly through the gap between the minaret and the storm cloud. Touch either one, the ground or the top of the sky, and it's over.</li>
+        <li><kbd>M</kbd> sound on or off · <kbd>Esc</kbd> back to the menu</li>
+        <li><b>Race the AI:</b> a see-through stork flies next to you. It's an AI I trained, and it sees only 5 numbers. Pick your opponent, from Beginner to Seasoned.</li>
+        <li><b>Watch the AI:</b> the AI flies alone.</li>
+      </ul>
+      <h3>Medals</h3>
+      <ul class="medals">
+        <li><svg viewBox="-10 -10 20 20" aria-hidden="true"><rect x="-7" y="-7" width="14" height="14" fill="#c27a45"/><rect x="-7" y="-7" width="14" height="14" fill="#c27a45" transform="rotate(45)"/><rect x="-3.4" y="-3.4" width="6.8" height="6.8" fill="#18120c" transform="rotate(22.5)"/></svg><span><b>Bronze</b>10 minarets</span></li>
+        <li><svg viewBox="-10 -10 20 20" aria-hidden="true"><rect x="-7" y="-7" width="14" height="14" fill="#c9ced6"/><rect x="-7" y="-7" width="14" height="14" fill="#c9ced6" transform="rotate(45)"/><rect x="-3.4" y="-3.4" width="6.8" height="6.8" fill="#18120c" transform="rotate(22.5)"/></svg><span><b>Silver</b>20 minarets</span></li>
+        <li><svg viewBox="-10 -10 20 20" aria-hidden="true"><rect x="-7" y="-7" width="14" height="14" fill="#e2b444"/><rect x="-7" y="-7" width="14" height="14" fill="#e2b444" transform="rotate(45)"/><rect x="-3.4" y="-3.4" width="6.8" height="6.8" fill="#18120c" transform="rotate(22.5)"/></svg><span><b>Gold</b>30 minarets</span></li>
+        <li><svg viewBox="-10 -10 20 20" aria-hidden="true"><rect x="-7" y="-7" width="14" height="14" fill="#2fae7a"/><rect x="-7" y="-7" width="14" height="14" fill="#2fae7a" transform="rotate(45)"/><rect x="-3.4" y="-3.4" width="6.8" height="6.8" fill="#18120c" transform="rotate(22.5)"/></svg><span><b>Emerald</b>40 minarets</span></li>
+      </ul>
+      <p style="margin-top:10px">Each medal is the eight-pointed star from Moroccan zellige tiles.</p>
+      <h3>Levels</h3>
+      <table class="levels">
+        <tr><th></th><th>Gap</th><th>Speed</th></tr>
+        <tr><td>Easy</td><td>180 px</td><td>3 px per step</td></tr>
+        <tr><td>Medium</td><td>155 px</td><td>3.5 px per step</td></tr>
+        <tr><td>Hard</td><td>130 px</td><td>4 px per step</td></tr>
+      </table>
+      <p style="margin-top:12px">Tip: tap in small, steady rhythms. Big panicky bursts shoot you into the clouds.</p>
+      <button class="back" data-close>Let's fly</button>
+    </section>
+
+    <button class="skin-btn gone" id="skinBtn" type="button" aria-label="Choose your stork" title="Your stork"><canvas id="skinIcon" width="96" height="96" aria-hidden="true"></canvas>
+      <svg class="brush" viewBox="0 0 24 24" aria-hidden="true">
+        <defs><linearGradient id="tipPaint" x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0" stop-color="#c27a45"/><stop offset="0.35" stop-color="#c9ced6"/>
+          <stop offset="0.65" stop-color="#e2b444"/><stop offset="1" stop-color="#2fae7a"/>
+        </linearGradient></defs>
+        <path d="M21.5 2.5 14.8 9.2" stroke="#9a6638" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M15.6 8.4 12.4 11.6" stroke="#d8d2c6" stroke-width="3.6"/>
+        <path d="M11.6 10.4c2.2-.4 4.2 1.6 3.8 3.8-.7 4.4-5.6 8-12.9 8.6 1.8-2.6 2-5.6 2.7-7.8.9-2.7 3.6-4.2 6.4-4.6Z" fill="url(#tipPaint)"/>
+      </svg></button>
+
+    <section class="panel" id="skins" aria-label="Your stork">
+      <h2>Your <span>stork</span></h2>
+      <p>Win medals to unlock new storks. A medal on any level counts. Skins only change how your stork looks: the hitbox and the physics stay exactly the same.</p>
+      <div class="skin-grid" id="skinGrid"></div>
+      <button class="back" data-close>Let's fly</button>
+    </section>
+
+    <section class="panel" id="about" aria-label="About">
+      <h2>About <span>this game</span></h2>
+      <p>The storks you race are AIs trained with reinforcement learning. The exact same rules run in a Python environment, where each one learned to fly from rewards alone: +1 for each minaret, −1 for a crash. Nobody told it to flap.</p>
+      <h3>Same world, two players</h3>
+      <p>The physics here match the training environment step for step: 30 steps per second, the same gravity, the same gaps. So your score and the AI's score mean the same thing.</p>
+      <p>The AIs in this game are real snapshots from training, running right in your browser. Beginner is an AI early in its training, and Seasoned is the best snapshot after up to a million steps of practice. Every opponent is a real point in the learning process; none of them was made worse on purpose.</p>
+      <h3>The opponents in numbers</h3>
+      <p>Average minarets passed on the same 20 test courses (the most possible in 100 seconds is 41 on Easy, 49 on Medium and 56 on Hard):</p>
+      <table class="levels">
+        <tr><th></th><th>Easy</th><th>Medium</th><th>Hard</th></tr>
+        <tr><td>Beginner</td><td>13.8</td><td>11.1</td><td>16.4</td></tr>
+        <tr><td>Intermediate</td><td>20.6</td><td>28.3</td><td>35.6</td></tr>
+        <tr><td>Experienced</td><td>36.9</td><td>40.1</td><td>44.8</td></tr>
+        <tr><td>Seasoned</td><td>41.0</td><td>49.0</td><td>47.9</td></tr>
+        <tr><td>My one-line rule</td><td>41.0</td><td>43.0</td><td>26.9</td></tr>
+      </table>
+      <h3>Made from scratch</h3>
+      <p>Every drawing is made with code, the storks, minarets and medina wall. Every sound is made with code too, using the Web Audio API, with no recordings. White storks really do nest on minarets in Morocco, which is where the idea came from.</p>
+      <p>I wrote it with help from an AI coding assistant. The project idea, the experiments and the decisions are mine.</p>
+      <button class="back" data-close>Back to the game</button>
+    </section>
+  </div>
+</div>
+
+<nav class="bar" aria-label="Game menu">
+  <span class="logo">Stork <span>Flight</span></span>
+  <button class="tab" data-page="game" aria-current="page">Game</button>
+  <button class="tab" data-page="how">How to Play</button>
+  <button class="tab" data-page="about">About</button>
+  <span class="spacer"></span>
+  <button class="tab install" id="installBtn" type="button" hidden>Install app</button>
+  <div class="levels-pick" role="group" aria-label="Difficulty">
+    <button type="button" data-d="0" aria-pressed="true">Easy</button>
+    <button type="button" data-d="0.5" aria-pressed="false">Medium</button>
+    <button type="button" data-d="1" aria-pressed="false">Hard</button>
+  </div>
+  <button class="sound" id="soundBtn" aria-label="Sound on" aria-pressed="true"></button>
+</nav>
+
+<script src="networks.js?v=11"></script>
+<script src="game.js?v=11"></script>
+<script>
+// Installable app: show "Install app" when the browser offers it (the offline helper is registered at the end of game.js)
+let installPrompt = null;
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); installPrompt = e; document.getElementById("installBtn").hidden = false; });
+document.getElementById("installBtn").addEventListener("click", async () => {
+  if (!installPrompt) return;
+  installPrompt.prompt(); await installPrompt.userChoice; installPrompt = null;
+  document.getElementById("installBtn").hidden = true;
+});
+addEventListener("appinstalled", () => { document.getElementById("installBtn").hidden = true; });
+</script>
+</body>
+</html>
