@@ -138,6 +138,7 @@ function buzz(kind) {
   } catch (e) { vibrate(kind); }
 }
 const APP = document.documentElement.classList.contains("app");   // running as the Android app
+let countEnd = 0;                                        // online countdown: when the run starts
 let mode = "solo";                                     // "solo", "race" or "watch"
 // how much practice each opponent had (training steps), from section 8 of the notebook
 const OPP_STEPS = { "0": [220000, 240000, 600000, 1000000], "0.5": [240000, 300000, 400000, 1000000], "1": [400000, 700000, 800000, 900000] };
@@ -180,13 +181,19 @@ if (!unlocked(skin)) skin = "classic";
 function rand(seed) { let x = Math.sin(seed * 9301 + 49297) * 233280; return x - Math.floor(x); }
 
 let towerCount = 0;
+// where the gaps go: random, except online, where both phones use the same seed so they fly the same course
+let courseRandom = Math.random;
+function seeded(seed) {   // mulberry32: a small, fast random generator that gives the same numbers for the same seed
+  return () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
 function newTower(x, prev) {
   const gap = gapSize();
   let lo = 90 + gap / 2, hi = H - GROUND - 70 - gap / 2;
   if (prev != null) { lo = Math.max(lo, prev - 160); hi = Math.min(hi, prev + 160); }
   const id = towerCount++;
   return {
-    x, prevX: x, gapY: lo + Math.random() * (hi - lo), gap, passed: false, id,
+    x, prevX: x, gapY: lo + courseRandom() * (hi - lo), gap, passed: false, id,
     style: Math.floor(rand(id) * 3),
     nest: rand(id + 7) < 0.35,
   };
@@ -194,7 +201,7 @@ function newTower(x, prev) {
 function reset() {
   s = { y: H / 2, prevY: H / 2, vy: 0, score: 0, flapTime: -1000, towers: [], angle: 0, popT: -1e9,
         startBest: best, recordAt: -1e9, ghost: null, reward: 0, trail: [], startAt: 0,
-        unlockBase: bestAll(), toast: null };   // unlockBase: your best on any level before this run   // startBest: the record to beat in this run
+        unlockBase: bestAll(), toast: null, k: 0, rivalOutAt: 0 };   // k: steps flown this run   // unlockBase: your best on any level before this run   // startBest: the record to beat in this run
   for (let i = 0; i < 3; i++) s.towers.push(newTower(W + 40 + i * SPACING, i ? s.towers[i - 1].gapY : null));
   particles = [];
   newBest = false;
@@ -207,20 +214,27 @@ function crashedAt(y, towers = s.towers) {
 const crashed = () => crashedAt(s.y);
 // the AI's stork in a race: same world, same rules, its own height and speed
 function launch() {
-  s.ghost = mode === "race" ? { y: s.y, prevY: s.y, vy: s.vy, angle: 0, flapTime: -1000, alive: true, score: 0, deadAt: 0, reward: 0, trail: [] } : null;
+  s.ghost = mode === "race" ? { y: s.y, prevY: s.y, vy: s.vy, angle: 0, flapTime: -1000, alive: true, score: 0, deadAt: 0, reward: 0, trail: [] }
+          : mode === "online" && NET.connected ? { y: s.y, prevY: s.y, vy: 0, angle: 0, flapTime: -1000, alive: true, score: 0, deadAt: 0, online: true, label: "Rival", skin: NET.rivalSkin }
+          : null;
   s.startAt = performance.now(); s.reward = 0; s.trail = [];
 }
 function step(flap) {
-  const g = s.ghost;
+  const g = s.ghost, online = g && g.online;
+  const alive = state === "play";                                         // online, after you crash you watch your rival ("spectate")
   if (mode === "watch") { flap = aiDecide(s); if (flap) sfx("flap"); }   // the AI flies your stork
-  const gFlap = g && g.alive && aiDecide(g);                              // decide before anything moves, like the env
+  const gFlap = !online && g && g.alive && aiDecide(g);                   // decide before anything moves, like the env
   let rS = 0.1, rG = 0.1;                                                  // reward this step, as in stork_env.py
   s.prevY = s.y; prevDistance = distance;
   for (const t of s.towers) t.prevX = t.x;
-  if (flap) { s.vy = FLAP; s.flapTime = performance.now(); }
-  s.vy = Math.min(s.vy + GRAVITY, MAX_FALL);
-  s.y += s.vy;
-  if (g) {
+  if (alive) {
+    if (flap) { s.vy = FLAP; s.flapTime = performance.now(); }
+    s.vy = Math.min(s.vy + GRAVITY, MAX_FALL);
+    s.y += s.vy;
+  } else { s.vy = Math.min(s.vy + GRAVITY * 1.4, MAX_FALL * 1.4); s.y = Math.min(s.y + s.vy, H - GROUND - 10); }   // your stork falls
+  s.k++;
+  if (online) netGhost(g, s.k);                                           // the rival: where they were at this same moment
+  else if (g) {
     g.prevY = g.y;
     if (gFlap) { g.vy = FLAP; g.flapTime = performance.now(); }
     g.vy = Math.min(g.vy + GRAVITY * (g.alive ? 1 : 1.4), MAX_FALL * (g.alive ? 1 : 1.4));
@@ -229,7 +243,7 @@ function step(flap) {
   distance += speed();
   for (const t of s.towers) {
     t.x -= speed();
-    if (!t.passed && t.x + TOWER_W < STORK_X - STORK_R) {
+    if (alive && !t.passed && t.x + TOWER_W < STORK_X - STORK_R) {
       t.passed = true; s.score++; s.popT = performance.now(); sfx("point");
       // a stork that was still locked before this run unlocks the moment you reach its score
       const fresh = mode !== "watch" && Object.keys(SKINS).find(id => SKINS[id].need === s.score && SKINS[id].need > s.unlockBase);
@@ -252,10 +266,12 @@ function step(flap) {
     const last = s.towers[s.towers.length - 1];
     s.towers.push(newTower(last.x + SPACING, last.gapY));
   }
-  if (g && g.alive && crashedAt(g.y)) { g.alive = false; g.score = s.score; g.deadAt = performance.now(); sfx("ghostout"); rG = -1; g.reward += rG; }
+  if (!online && g && g.alive && crashedAt(g.y)) { g.alive = false; g.score = s.score; g.deadAt = performance.now(); sfx("ghostout"); rG = -1; g.reward += rG; }
   else if (g && g.alive) g.reward += rG;
+  if (!alive) return;
   const hit = crashed();
   s.reward += hit ? -1 : rS;
+  if (mode === "online") netSend(hit ? { t: "dead", k: s.k, score: s.score } : { t: "s", k: s.k, y: Math.round(s.y * 10) / 10, f: flap ? 1 : 0 });
   if (hit) die();
 }
 function die() {
@@ -280,8 +296,11 @@ function die() {
   if (mode !== "watch" && s.score > best) { best = s.score; saveBest(best); newBest = true; }   // the AI's runs don't count as yours
   const fresh = Object.keys(SKINS).filter(id => SKINS[id].need > before && unlocked(id));
   s.newSkin = fresh.length ? fresh[fresh.length - 1] : null;
+  if (s.ghost && s.ghost.online && s.ghost.alive) { state = "spectate"; return; }   // online: keep watching until your rival crashes too
   showGameOver();
 }
+// online: the round ends when both storks are down
+function endOnlineRound() { state = "over"; deathTime = performance.now(); showGameOver(); }
 
 /* ---------- the game-over card (HTML) ---------- */
 const $ = id => document.getElementById(id);
@@ -315,11 +334,21 @@ function showGameOver() {
     const f = next ? Math.max(0, Math.min(1, (n - from) / (next.min - from))) : 1;
     fill.style.width = (f * 100) + "%"; track.setAttribute("aria-valuenow", n);
   };
-  document.querySelector(".over .title").textContent = mode === "watch" ? "The AI crashed!" : "Ouch!";
+  const net = g0 => g0 && g0.online ? netResult() : null, r = net(s.ghost);
+  document.querySelector(".over .title").textContent = r ? r.title : mode === "watch" ? "The AI crashed!" : "Ouch!";
+  $("oRetry").querySelector("span").textContent = r ? "Rematch" : "Fly again";
+  $("oRetry").disabled = !!(r && r.left);
   $("oBestLbl").textContent = mode === "watch" ? "your best" : "best";
   const race = $("oRace"), g = s.ghost;
   race.hidden = !g;
-  if (g) {
+  race.classList.remove("lost");
+  if (r) {
+    $("oYou").textContent = score; $("oVs").hidden = false;
+    $("oAiLabel").textContent = "Rival"; $("oAi").textContent = r.rivalScore;
+    $("oVerdict").textContent = r.left ? "Your rival left" : `Series ${r.me}–${r.rival}`;
+    race.classList.toggle("lost", r.result === "lose");
+  }
+  else if (g) {
     // the result is only what you saw: if the AI was still flying when you crashed, it outlasted you
     const aiAlive = g.alive, won = !aiAlive && score > g.score, tie = !aiAlive && score === g.score;
     $("oYou").textContent = score;
@@ -380,7 +409,7 @@ function fitCanvas() {
   // in the app, the start-screen buttons are 25% bigger so they're easy to hit with a thumb
   const btn = shown / H * 16 * (document.documentElement.classList.contains("app") ? 1.25 : 1);
   for (const id of ["modes", "skinBtn", "appTools", "appLevels"]) document.getElementById(id).style.fontSize = btn + "px";
-  document.getElementById("opps").style.fontSize = Math.min(btn, shown / H * 16 * 1.1) + "px";   // four opponents: only a little bigger, so the row still fits
+  for (const id of ["opps", "lobbyRow"]) document.getElementById(id).style.fontSize = Math.min(btn, shown / H * 16 * 1.1) + "px";   // four opponents: only a little bigger, so the row still fits
   ctx.setTransform(k, 0, 0, k, 0, OFF_T * k);
 }
 fitCanvas();
@@ -509,7 +538,7 @@ function drawCloud(t, night) {
   ctx.fillRect(x0 - 6, -OFF_T, 10, bottom - 20 + OFF_T);
 }
 function drawStork(b = s) {
-  const ghost = b !== s, down = ghost ? !b.alive : state === "over";
+  const ghost = b !== s, down = ghost ? !b.alive : state === "over" || state === "spectate";
   const x = STORK_X, y = lerp(b.prevY, b.y, alpha);
   const target = down ? b.angle + 0.15 * frameScale : Math.max(-0.45, Math.min(0.8, b.vy / 12));
   b.angle = down ? Math.min(target, 1.6) : lerp(b.angle, target, 1 - Math.pow(0.75, frameScale));
@@ -517,15 +546,15 @@ function drawStork(b = s) {
   if (ghost) {                     // the AI: see-through, with a small tag
     const fade = b.alive ? 1 : Math.max(0, 1 - (performance.now() - b.deadAt) / 900);
     if (fade <= 0) { ctx.restore(); return; }
-    ctx.globalAlpha *= 0.5 * fade;          // multiply, so an outer fade still works
+    ctx.globalAlpha *= (state === "spectate" ? 0.85 : 0.5) * fade;   // multiply, so an outer fade still works; clearer while you watch
     ctx.font = `600 11px ${SANS}`; ctx.textAlign = "center"; ctx.fillStyle = "#e9f4ff";
-    ctx.fillText(opponent, x, y - 22);
+    ctx.fillText(b.label || opponent, x, y - 22);
   }
   ctx.translate(x, y); ctx.rotate(b.angle);
   const flapElapsed = performance.now() - b.flapTime;          // smooth wing flap, timed in real time
   const k = Math.min(1, flapElapsed / (8 * STEP_MS));
   const wingAngle = down ? 0.6 : lerp(-1.1, 0.25, k) + (state === "ready" ? Math.sin(performance.now() / 160) * 0.5 : 0);
-  paintStork(ctx, ghost ? SKINS.classic : SKINS[skin], wingAngle, Math.min(1, rd() / 9000));   // the AI always looks classic
+  paintStork(ctx, ghost ? SKINS[b.skin] || SKINS.classic : SKINS[skin], wingAngle, Math.min(1, rd() / 9000));   // the AI always looks classic; a rival shows their stork
   ctx.restore();
 }
 // Draws a stork at (0, 0) on any canvas: used in the game and for the skin previews
@@ -699,7 +728,7 @@ function drawUnlockToast(now) {
 }
 
 function drawUI(now) {
-  if (state === "play") {
+  if (state === "play" || state === "spectate") {
     const k = (now - s.popT) / 220;
     const sc = REDUCED || k >= 1 ? 1 : 1 + 0.35 * Math.pow(1 - k, 2);
     const record = mode !== "watch" && s.startBest > 0 && s.score > s.startBest;        // golden for as long as this run is the best
@@ -710,6 +739,11 @@ function drawUI(now) {
     if (mode === "watch") {           // short instruction that fades out after 3 seconds
       const a = Math.max(0, Math.min(1, 1 - (now - s.startAt - 3000) / 600));
       if (a > 0) { ctx.save(); ctx.globalAlpha = a; text("The AI is flying · tap or Esc to stop", W / 2, 118, 13, "#e8e2d6", "center", "SANS"); ctx.restore(); }
+    }
+    if (state === "spectate") text("Your rival is still flying…", W / 2, 118, 14, "#e8e2d6", "center", "SANS");
+    else if (s.rivalOutAt) {           // online: your rival crashed while you're still flying
+      const a = Math.max(0, Math.min(1, 1 - (now - s.rivalOutAt - 2500) / 500));
+      if (a > 0) { ctx.save(); ctx.globalAlpha = a; text("Your rival crashed · you win!", W / 2, 118, 14, "#ffcf3f", "center", "SANS"); ctx.restore(); }
     }
     if (s.toast) drawUnlockToast(now);
     // "HIGH SCORE REACHED": small, under the score, gone after 3.5 s
@@ -731,6 +765,14 @@ function drawUI(now) {
     return;
   }
   ctx.fillStyle = state === "over" ? "rgba(8,8,10,0.78)" : "rgba(8,8,10,0.5)"; ctx.fillRect(0, -OFF_T, W, H + OFF_T + OFF_B);
+  if (state === "count") {           // online: 3, 2, 1, then both phones start
+    const left = Math.max(0, countEnd - now), n = Math.ceil(left / 1000), f = (left % 1000) / 1000;
+    text("You vs Rival", W / 2, 150, 22, "#e8e2d6");
+    text(`${LEVEL()} · same course · last one flying wins`, W / 2, 178, 13, "#cfc9bd", "center", "SANS");
+    ctx.save(); ctx.translate(W / 2, 330); const sc = REDUCED ? 1 : 1 + 0.4 * f; ctx.scale(sc, sc); ctx.globalAlpha = REDUCED ? 1 : 1 - 0.6 * (1 - f);
+    text(String(Math.max(1, n)), 0, 30, 110, "#fff"); ctx.restore();
+    return;
+  }
   if (state === "ready") {
     ctx.save(); ctx.translate(W / 2, 214); ctx.rotate(-3 * Math.PI / 180);   // tilted, like the page headings
     text("Stork", 0, -36, 80, "#fff");
@@ -745,7 +787,7 @@ function drawUI(now) {
     ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(170, H / 2 + 8, 7, 0, 7); ctx.fill();
     text("tap!", 210, H / 2 + 16, 24, "#fff", "left");
     capA += ((mode === "solo" ? 0 : 1) - capA) * (REDUCED ? 1 : Math.min(1, frameMs / 110));   // cross-fade
-    if (mode !== "solo") capLabel = mode === "race" ? "Choose your opponent" : "Choose which AI to watch";
+    if (mode !== "solo") capLabel = mode === "race" ? "Choose your opponent" : mode === "online" ? "Race a friend on another phone" : "Choose which AI to watch";
     ctx.save();
     ctx.globalAlpha = 1 - capA; text("Fly between the minarets and the storm clouds.", W / 2, 380, 15, "#e8e2d6", "center", "SANS");
     ctx.globalAlpha = capA; text(capLabel, W / 2, 350, 14, "#e8e2d6", "center", "SANS");
@@ -754,7 +796,8 @@ function drawUI(now) {
     const pulse = 0.6 + 0.4 * Math.sin(now / 300);
     ctx.save(); ctx.globalAlpha = REDUCED ? 1 : pulse;
     const verb = mode === "watch" ? "watch" : mode === "race" ? "race" : "fly";
-    text(TOUCH ? `Tap to ${verb}` : `Tap or press space to ${verb}`, W / 2, 472, 22, "#fff");   // no "space" on phones
+    text(mode === "online" ? (NET.connected ? (NET.host ? "Tap to start the match" : "Waiting for the host to start") : "Tap to open the lobby")
+         : TOUCH ? `Tap to ${verb}` : `Tap or press space to ${verb}`, W / 2, 472, 22, "#fff");   // no "space" on phones
     ctx.restore();
     if (best) {
       text(`Best ${best}`, W / 2, 504, 15, "#cfc9bd", "center", "SANS");
@@ -795,7 +838,7 @@ function draw(now) {
   ctx.fillStyle = mix([206, 150, 96], [56, 48, 60], night * 0.7); ctx.fillRect(0, H - GROUND, W, 6);
   ctx.fillStyle = "rgba(0,0,0,0.08)";
   layer(1, 40, x => ctx.fillRect(x, H - GROUND + 18, 20, 4));
-  if (s.ghost && state === "play") drawStork(s.ghost);   // the AI flies behind you
+  if (s.ghost && (state === "play" || state === "spectate")) drawStork(s.ghost);   // the AI (or your online rival) flies behind you
   else if (s.ghost && state === "over" && s.ghost.alive) {   // you crashed: the AI fades away where it was
     const k = 1 - (performance.now() - deathTime) / 400;
     if (k > 0) { ctx.save(); ctx.globalAlpha = k; drawStork(s.ghost); ctx.restore(); }
@@ -805,7 +848,7 @@ function draw(now) {
   ctx.restore();
   drawUI(now);
   drawParticles("confetti");             // above the dimming, so it stays bright
-  if (state === "ready") drawStork();
+  if (state === "ready" || state === "count") drawStork();
   if (flash > 0) {
     ctx.fillStyle = `rgba(255,255,255,${flash * 0.7})`; ctx.fillRect(0, -OFF_T, W, H + OFF_T + OFF_B);
     flash = Math.max(0, flash - 0.08 * frameScale);
@@ -817,20 +860,26 @@ function draw(now) {
    ===================================================================== */
 let pending = false, last = 0, acc = 0;
 function startFlight() {
+  // online: the course comes from the seed both phones share; otherwise it's random
+  courseRandom = mode === "online" && NET.seed != null ? seeded(NET.seed) : Math.random; towerCount = 0;
   hideGameOver(); reset(); distance = prevDistance = 0;
   s.y = s.prevY = H / 2;
   state = "play"; pending = mode !== "watch"; launch(); sfx("start"); sfx("flap");
 }
 function input() {
-  if (trans) return;
+  if (trans || state === "count" || state === "spectate") return;
   ensureAudio();
+  if (mode === "online" && state === "ready") { netTapReady(); return; }   // online runs start together, from the lobby
   if (state === "play") {
     if (mode === "watch") { toMenu(); return; }          // tapping while the AI flies stops the demo
     pending = true; sfx("flap"); return;
   }
   if (state === "ready") { state = "play"; s.prevY = s.y; s.vy = 0; pending = mode !== "watch"; launch(); if (pending) sfx("flap"); return; }
 }
-function toMenu() { hideGameOver(); reset(); distance = prevDistance = 0; state = "ready"; sfx("click"); }
+function retry() { if (mode === "online") netRematch(); else startFlight(); }
+function toMenu() {
+  if (mode === "online" && (state === "play" || state === "count")) netSend({ t: "dead", k: s.k, score: s.score });   // leaving a run online counts as a crash
+  courseRandom = Math.random; hideGameOver(); reset(); distance = prevDistance = 0; state = "ready"; sfx("click"); }
 
 function changeDifficulty(newDifficulty) {
   if (trans) return;
@@ -875,7 +924,7 @@ addEventListener("keydown", e => {
   if (e.code === "Space" || e.code === "ArrowUp" || e.code === "Enter") {
     e.preventDefault(); if (e.repeat) return;
     ensureAudio();
-    if (state === "over") { if (canReact()) startFlight(); }
+    if (state === "over") { if (canReact()) retry(); }
     else input();
   }
   if (e.code === "Escape" && state === "over" && canReact()) toMenu();
@@ -950,7 +999,7 @@ function showPage(id) {
   if (!id) canvas.focus?.();
 }
 document.querySelectorAll("[data-page]").forEach(t => t.addEventListener("click", () => { showPage(t.dataset.page === "game" ? null : t.dataset.page); t.blur(); }));
-$("oRetry").addEventListener("click", () => { if (canReact()) startFlight(); });
+$("oRetry").addEventListener("click", () => { if (canReact()) retry(); });
 $("oHome").addEventListener("click", () => { if (canReact()) toMenu(); });
 document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => showPage(null)));
 for (const id of ["soundBtn", "appSound"]) document.getElementById(id).addEventListener("click", e => { toggleMute(); e.currentTarget.blur(); });
@@ -968,6 +1017,7 @@ document.querySelectorAll("[data-d]").forEach(b => b.addEventListener("click", (
 }));
 
 function setMode(m) {
+  if (m !== "online" && mode === "online") netLeave();
   mode = m;
   try { localStorage.setItem("stork-mode", m); } catch (e) {}
   document.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === m)));
@@ -993,8 +1043,9 @@ function loop(now) {
   frameMs = Math.min(now - last, 100);
   acc += panelOpen ? 0 : frameMs; last = now;
   while (acc >= STEP_MS) {
-    if (state === "play") { step(pending); pending = false; }
-    else if (state === "ready") {
+    if (state === "play" || state === "spectate") { step(pending); pending = false; }
+    else if (state === "ready" || state === "count") {
+      if (state === "count" && now >= countEnd) { startFlight(); continue; }
       if (trans) {
         const t = Math.min(1, (now - trans.start) / trans.duration);
         const ease = 1 - Math.pow(1 - t, 3);
@@ -1021,7 +1072,9 @@ function loop(now) {
   // both rows stay put while the course changes; they only fade when the screen really changes
   const showModes = state === "ready" && !panelOpen;
   if (modesEl.classList.contains("gone") === showModes) modesEl.classList.toggle("gone", !showModes);
-  const showOpps = showModes && mode !== "solo";
+  const showOpps = showModes && (mode === "race" || mode === "watch");
+  const lobby = $("lobbyRow"), showLobby = showModes && mode === "online";
+  if (lobby.classList.contains("gone") === showLobby) lobby.classList.toggle("gone", !showLobby);
   if (oppsEl.classList.contains("gone") === showOpps) oppsEl.classList.toggle("gone", !showOpps);
   for (const id of ["skinBtn", "appTools", "appLevels"]) {
     const el = $(id);

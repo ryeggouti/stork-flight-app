@@ -24,7 +24,7 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Stork Flight">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="styles.css?v=18">
+<link rel="stylesheet" href="styles.css?v=20">
 </head>
 <body>
 <div class="stage-wrap">
@@ -80,11 +80,22 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
       <button type="button" data-opp="Experienced">Experienced</button>
       <button type="button" data-opp="Seasoned">Seasoned</button>
     </div>
+    <div class="modes opps gone" id="lobbyRow" role="group" aria-label="Online match">
+      <button type="button" id="lobbyBtn">Open the lobby</button>
+    </div>
     <div class="modes" id="modes" role="group" aria-label="Game mode">
       <button type="button" data-mode="solo" aria-pressed="true">Solo</button>
       <button type="button" data-mode="race" aria-pressed="false">Race the AI</button>
       <button type="button" data-mode="watch" aria-pressed="false">Watch the AI</button>
+      <button type="button" data-mode="online" aria-pressed="false">1v1</button>
     </div>
+
+    <section class="panel" id="online" aria-label="Online 1v1">
+      <h2>1v1 <span>online</span></h2>
+      <p>Race a friend on another phone. You both fly the same course at the same time, and the last stork flying wins.</p>
+      <div class="lobby" id="lobby"></div>
+      <button class="back" data-close>Back to the game</button>
+    </section>
 
     <section class="panel" id="how" aria-label="How to play">
       <h2>How to <span>play</span></h2>
@@ -97,6 +108,7 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
         <li class="app-only">The back button closes a page or leaves a run.</li>
         <li><b>Race the AI:</b> a see-through stork flies next to you. It's an AI I trained, and it sees only 5 numbers. Pick your opponent, from Beginner to Seasoned.</li>
         <li><b>Watch the AI:</b> the AI flies alone.</li>
+        <li><b>1v1:</b> race a friend on another phone. One of you makes a room and shares the 4-letter code, the other joins. Same course, same time: the last stork flying wins.</li>
       </ul>
       <h3>Medals</h3>
       <ul class="medals">
@@ -186,8 +198,9 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
   <button class="sound" id="soundBtn" aria-label="Sound on" aria-pressed="true"></button>
 </nav>
 
-<script src="networks.js?v=18"></script>
-<script src="game.js?v=18"></script>
+<script src="networks.js?v=20"></script>
+<script src="game.js?v=20"></script>
+<script src="online.js?v=20"></script>
 <script>
 // Installable app: show "Install app" when the browser offers it (the offline helper is registered at the end of game.js)
 let installPrompt = null;
