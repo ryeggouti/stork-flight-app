@@ -803,7 +803,7 @@ function drawUI(now) {
       ctx.save(); ctx.globalAlpha = REDUCED ? 1 : pulse; text(status, W / 2, 472, 22, "#fff"); ctx.restore();
     }
     if (best) {
-      const by = status ? 504 : 478;
+      const by = status ? 504 : APP ? 478 : 458;   // just under the level: the app's switch is taller than the website's label
       text(`Best ${best}`, W / 2, by, 15, "#cfc9bd", "center", "SANS");
       const m = medalFor(best);
       if (m) star(W / 2 + ctx.measureText(`Best ${best}`).width / 2 + 12, by - 5, 6, m.color);
