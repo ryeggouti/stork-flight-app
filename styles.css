@@ -162,6 +162,11 @@
   .round-btn span { font: 400 1.35em/1 var(--display); }
   .round-btn svg { width: 1.2em; height: 1.2em; }
   /* online lobby */
+  .lobby-name { display: grid; gap: 6px; margin-top: 16px; font: 400 18px var(--display); color: var(--accent); }
+  .lobby-name input { width: 11em; font: 600 20px var(--sans); background: #12100d; color: #fff; border: 2px solid #4a433b; border-radius: 12px;
+    padding: 6px 12px; -webkit-user-select: text; user-select: text; }
+  .lobby-name input:focus { outline: none; border-color: var(--accent); }
+  .lobby-note { font-size: 13px !important; color: var(--muted) !important; margin-top: 6px; }
   .lobby { margin-top: 18px; display: grid; gap: 12px; justify-items: start; }
   .lobby p { color: #ddd7cb; }
   .lobby-code { font: 400 64px/1 var(--display); letter-spacing: 0.12em; color: #fff; text-shadow: 0 4px 0 var(--brown); }

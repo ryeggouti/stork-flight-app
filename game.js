@@ -216,7 +216,7 @@ const crashed = () => crashedAt(s.y);
 // the AI's stork in a race: same world, same rules, its own height and speed
 function launch() {
   s.ghost = mode === "race" ? { y: s.y, prevY: s.y, vy: s.vy, angle: 0, flapTime: -1000, alive: true, score: 0, deadAt: 0, reward: 0, trail: [] }
-          : mode === "online" && NET.connected ? { y: s.y, prevY: s.y, vy: 0, angle: 0, flapTime: -1000, alive: true, score: 0, deadAt: 0, online: true, label: "Rival", skin: NET.rivalSkin }
+          : mode === "online" && NET.connected ? { y: s.y, prevY: s.y, vy: 0, angle: 0, flapTime: -1000, alive: true, score: 0, deadAt: 0, online: true, label: rivalName(), skin: NET.rivalSkin }
           : null;
   s.startAt = performance.now(); s.reward = 0; s.trail = [];
 }
@@ -345,8 +345,8 @@ function showGameOver() {
   race.classList.remove("lost");
   if (r) {
     $("oYou").textContent = score; $("oVs").hidden = false;
-    $("oAiLabel").textContent = "Rival"; $("oAi").textContent = r.rivalScore;
-    $("oVerdict").textContent = r.left ? "Your rival left" : `Series ${r.me}–${r.rival}`;
+    $("oAiLabel").textContent = rivalName(); $("oAi").textContent = r.rivalScore;
+    $("oVerdict").textContent = r.left ? `${rivalName()} left` : `Series ${r.me}–${r.rival}`;
     race.classList.toggle("lost", r.result === "lose");
   }
   else if (g) {
@@ -743,10 +743,10 @@ function drawUI(now) {
       const a = Math.max(0, Math.min(1, 1 - (now - s.startAt - 3000) / 600));
       if (a > 0) { ctx.save(); ctx.globalAlpha = a; text("The AI is flying · tap or Esc to stop", W / 2, 118, 13, "#e8e2d6", "center", "SANS"); ctx.restore(); }
     }
-    if (state === "spectate") text("Your rival is still flying…", W / 2, 118, 14, "#e8e2d6", "center", "SANS");
+    if (state === "spectate") text(`${rivalName()} is still flying…`, W / 2, 118, 14, "#e8e2d6", "center", "SANS");
     else if (s.rivalOutAt) {           // online: your rival crashed while you're still flying
       const a = Math.max(0, Math.min(1, 1 - (now - s.rivalOutAt - 2500) / 500));
-      if (a > 0) { ctx.save(); ctx.globalAlpha = a; text("Your rival crashed · you win!", W / 2, 118, 14, "#ffcf3f", "center", "SANS"); ctx.restore(); }
+      if (a > 0) { ctx.save(); ctx.globalAlpha = a; text(`${rivalName()} crashed · you win!`, W / 2, 118, 14, "#ffcf3f", "center", "SANS"); ctx.restore(); }
     }
     if (s.toast) drawUnlockToast(now);
     // "HIGH SCORE REACHED": small, under the score, gone after 3.5 s
@@ -770,7 +770,7 @@ function drawUI(now) {
   ctx.fillStyle = state === "over" ? "rgba(8,8,10,0.78)" : "rgba(8,8,10,0.5)"; ctx.fillRect(0, -OFF_T, W, H + OFF_T + OFF_B);
   if (state === "count") {           // online: 3, 2, 1, then both phones start
     const left = Math.max(0, countEnd - now), n = Math.ceil(left / 1000), f = (left % 1000) / 1000;
-    text("You vs Rival", W / 2, 150, 22, "#e8e2d6");
+    text(`You vs ${rivalName()}`, W / 2, 150, 22, "#e8e2d6");
     text(`${LEVEL()} · same course · last one flying wins`, W / 2, 178, 13, "#cfc9bd", "center", "SANS");
     ctx.save(); ctx.translate(W / 2, 330); const sc = REDUCED ? 1 : 1 + 0.4 * f; ctx.scale(sc, sc); ctx.globalAlpha = REDUCED ? 1 : 1 - 0.6 * (1 - f);
     text(String(Math.max(1, n)), 0, 30, 110, "#fff"); ctx.restore();

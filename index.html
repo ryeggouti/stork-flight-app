@@ -24,7 +24,7 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Stork Flight">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="styles.css?v=27">
+<link rel="stylesheet" href="styles.css?v=28">
 </head>
 <body>
 <div class="stage-wrap">
@@ -92,6 +92,10 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
     <section class="panel" id="online" aria-label="Online 1v1">
       <h2>1v1 <span>online</span></h2>
       <p>Race a friend on another phone. You both fly the same course at the same time, and the last stork flying wins.</p>
+      <label class="lobby-name">Your name
+        <input id="myName" maxlength="12" autocomplete="off" spellcheck="false" placeholder="e.g. Ryan" aria-describedby="nameNote">
+      </label>
+      <p class="lobby-note" id="nameNote">Only the friend in your room sees it.</p>
       <div class="lobby" id="lobby"></div>
       <button class="back" data-close>Back to the game</button>
     </section>
@@ -196,9 +200,9 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
   <button class="sound" id="soundBtn" aria-label="Sound on" aria-pressed="true"></button>
 </nav>
 
-<script src="networks.js?v=27"></script>
-<script src="game.js?v=27"></script>
-<script src="online.js?v=27"></script>
+<script src="networks.js?v=28"></script>
+<script src="game.js?v=28"></script>
+<script src="online.js?v=28"></script>
 <script>
 // Installable app: show "Install app" when the browser offers it (the offline helper is registered at the end of game.js)
 let installPrompt = null;

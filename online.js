@@ -2,7 +2,8 @@
    ONLINE 1v1
    Two phones connect directly to each other (WebRTC) with PeerJS. PeerJS's free
    public server is only used to find each other by room code; the game data
-   goes straight between the phones. No accounts and no names: just "You" and "Rival".
+   goes straight between the phones. No accounts: each player can pick a short name
+   (saved on their own phone), and only the rival in their room sees it.
 
    How a round works:
    - the host sends a random seed and the level, so both phones build the same course
@@ -15,9 +16,21 @@ const PEERJS_URL = "https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js";
 const ROOM_PREFIX = "stork-flight-1v1-";
 const CODE_LETTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ";   // no I or O, so codes are easy to read out
 
+// names: 2-12 letters (any alphabet, so Arabic works too), numbers, spaces and _ . -
+const BLOCKED = ["fuck", "shit", "bitch", "cunt", "dick", "pussy", "nigg", "fag", "whore", "slut", "rape", "porn", "sex"];
+function cleanName(v) {
+  const n = String(v || "").replace(/[^\p{L}\p{N} _.-]/gu, "").replace(/\s+/g, " ").trim().slice(0, 12);
+  const flat = n.toLowerCase().replace(/[^a-z]/g, "");
+  return n.length >= 2 && !BLOCKED.some(w => flat.includes(w)) ? n : "";
+}
+const esc = v => String(v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+let myName = "";
+try { myName = cleanName(localStorage.getItem("stork-name")); } catch (e) {}
+const rivalName = () => NET.rivalName || "Rival";
+
 const NET = {
   peer: null, conn: null, host: false, code: "", connected: false, status: "idle", error: "",
-  seed: null, rivalSkin: "classic",
+  seed: null, rivalSkin: "classic", rivalName: "",
   pos: new Map(), lastK: 0,             // the rival's height at each step of the run
   rivalDeadK: null, rivalScore: 0, myDeadK: null, myScore: 0, left: false, lastMsg: 0,
   me: 0, rival: 0, counted: false,     // series score
@@ -76,10 +89,10 @@ function peerError(e) {
     : e.type === "browser-incompatible" ? "This browser can't play online." : "Something went wrong. Try again.";
 }
 function attach(c) {
-  NET.conn = c;
+  NET.conn = c; NET.rivalName = ""; NET.rivalSkin = "classic";   // a new rival: forget the last one (before their hello can arrive)
   c.on("open", () => {
     NET.connected = true; NET.left = false; NET.me = NET.rival = 0; NET.lastMsg = performance.now();
-    netSend({ t: "hello", skin });
+    netSend({ t: "hello", skin, name: myName });
     setStatus("connected"); sfx("unlock"); buzz("unlock");
   });
   c.on("data", onMessage);
@@ -99,24 +112,25 @@ function rivalLeft() {
   NET.connected = false; NET.left = true;
   if (NET.rivalDeadK == null && (state === "play" || state === "spectate")) { NET.rivalDeadK = s.k; NET.rivalScore = s.ghost ? s.ghost.score : 0; }
   if (state === "count") toMenu();
-  if (state === "over") { $("oRetry").disabled = true; $("oRetry").querySelector("span").textContent = "Rematch"; $("oVerdict").textContent = "Your rival left"; }
+  if (state === "over") { $("oRetry").disabled = true; $("oRetry").querySelector("span").textContent = "Rematch"; $("oVerdict").textContent = `${rivalName()} left`; }
   try { NET.peer && NET.peer.destroy(); } catch (e) {}
   NET.peer = NET.conn = null;
-  setStatus("idle", "Your rival left the room.");
+  setStatus("idle", `${rivalName()} left the room.`);   // the name stays until someone new joins, so the card can still say who left
 }
 
 /* ---------- messages ---------- */
 function onMessage(m) {
   if (!m || typeof m !== "object") return;
   NET.lastMsg = performance.now();
-  if (m.t === "hello") { NET.rivalSkin = typeof m.skin === "string" && SKINS[m.skin] ? m.skin : "classic"; renderLobby(); }
+  if (m.t === "hello") { NET.rivalSkin = typeof m.skin === "string" && SKINS[m.skin] ? m.skin : "classic"; NET.rivalName = cleanName(m.name); renderLobby(); }
+  else if (m.t === "name") { NET.rivalName = cleanName(m.name); renderLobby(); }
   else if (m.t === "start" && !NET.host) beginRound(m.seed >>> 0, m.d);
   else if (m.t === "s") { NET.pos.set(m.k, { y: +m.y, f: m.f }); NET.lastK = Math.max(NET.lastK, m.k); }
   else if (m.t === "dead") { NET.rivalDeadK = m.k; NET.rivalScore = m.score | 0; }
   else if (m.t === "rematch") {
     NET.rivalRematch = true;
     if (NET.host && NET.wantRematch) hostStart();
-    else if (state === "over") $("oVerdict").textContent = "Your rival wants a rematch!";
+    else if (state === "over") $("oVerdict").textContent = `${rivalName()} wants a rematch!`;
   }
   else if (m.t === "bye") rivalLeft();
 }
@@ -165,14 +179,14 @@ function netResult() {
   if (!NET.counted) { NET.counted = true; if (result === "win") NET.me++; else if (result === "lose") NET.rival++; }
   return {
     result, left: NET.left, me: NET.me, rival: NET.rival, rivalScore: NET.rivalScore,
-    title: result === "win" ? "You win!" : result === "lose" ? "Rival wins" : "A draw!",
+    title: result === "win" ? "You win!" : result === "lose" ? `${rivalName()} wins` : "A draw!",
   };
 }
 function netRematch() {
   if (!NET.connected) return;
   NET.wantRematch = true; netSend({ t: "rematch" });
   if (NET.host && NET.rivalRematch) hostStart();
-  else { $("oRetry").querySelector("span").textContent = "Waiting…"; $("oVerdict").textContent = "Waiting for your rival…"; }
+  else { $("oRetry").querySelector("span").textContent = "Waiting…"; $("oVerdict").textContent = `Waiting for ${rivalName()}…`; }
 }
 // tapping the start screen in 1v1 mode
 function netTapReady() {
@@ -185,14 +199,14 @@ function setStatus(st, msg = "") { NET.status = st; NET.error = msg; renderLobby
 function fail(msg) { netLeave(true); setStatus("error", msg); }
 function renderLobby() {
   const el = $("lobby"), st = NET.status;
-  $("lobbyBtn").textContent = NET.connected ? (NET.host ? "Rival connected · Start" : "Rival connected · Lobby") : "Open the lobby";
+  $("lobbyBtn").textContent = NET.connected ? `${rivalName()} is here · ${NET.host ? "Start" : "Lobby"}` : "Open the lobby";
   if (st === "creating" || st === "joining") {
     el.innerHTML = `<p class="lobby-wait">${st === "creating" ? "Making a room…" : `Looking for room ${NET.code}…`}</p><button class="lobby-btn ghost" id="lCancel" type="button">Cancel</button>`;
   } else if (st === "hosting") {
     el.innerHTML = `<p>Your room code:</p><div class="lobby-code" aria-live="polite">${NET.code}</div>
       <p class="lobby-wait">Waiting for your friend to join…</p><button class="lobby-btn ghost" id="lCancel" type="button">Cancel</button>`;
   } else if (st === "connected") {
-    el.innerHTML = `<div class="lobby-code small">${NET.code}</div><p class="lobby-ok">Your rival is here!</p>
+    el.innerHTML = `<div class="lobby-code small">${NET.code}</div><p class="lobby-ok">${NET.rivalName ? esc(NET.rivalName) + " is here!" : "Your rival is here!"}</p>
       ${NET.host ? `<p>You're the host: pick the level (Easy, Medium or Hard) first, then start.</p><button class="lobby-btn" id="lStart" type="button">Start the match</button>`
                  : `<p class="lobby-wait">Waiting for the host to start the match…</p>`}
       <button class="lobby-btn ghost" id="lLeave" type="button">Leave the room</button>`;
@@ -211,5 +225,16 @@ function renderLobby() {
   on("lStart", hostStart);
   const code = $("lCode"); if (code) code.addEventListener("input", () => { code.value = code.value.toUpperCase().replace(/[^A-Z]/g, ""); });
 }
+// your name: saved on this phone, and sent to your rival when it changes
+const nameIn = $("myName");
+nameIn.value = myName;
+nameIn.addEventListener("input", () => { nameIn.value = nameIn.value.replace(/[^\p{L}\p{N} _.-]/gu, "").slice(0, 12); });
+nameIn.addEventListener("change", () => {
+  const n = cleanName(nameIn.value);
+  $("nameNote").textContent = nameIn.value.trim() && !n ? "That name can't be used. Try another one (2–12 letters or numbers)." : n ? "Saved. Your rival will see this name." : "No name: your rival sees “Rival”.";
+  myName = n; nameIn.value = n;
+  try { localStorage.setItem("stork-name", n); } catch (e) {}
+  if (NET.connected) netSend({ t: "name", name: n });
+});
 $("lobbyBtn").addEventListener("click", e => { e.currentTarget.blur(); if (NET.connected && NET.host) hostStart(); else showPage("online"); });
 renderLobby();
