@@ -201,7 +201,7 @@ function newTower(x, prev) {
 function reset() {
   s = { y: H / 2, prevY: H / 2, vy: 0, score: 0, flapTime: -1000, towers: [], angle: 0, popT: -1e9,
         startBest: best, recordAt: -1e9, ghost: null, reward: 0, trail: [], startAt: 0,
-        unlockBase: bestAll(), toast: null, k: 0, rivalOutAt: 0 };   // k: steps flown this run   // unlockBase: your best on any level before this run   // startBest: the record to beat in this run
+        unlockBase: bestAll(), toast: null, k: 0, rivalOutAt: 0, deadDist: null };   // k: steps flown this run   // unlockBase: your best on any level before this run   // startBest: the record to beat in this run
   for (let i = 0; i < 3; i++) s.towers.push(newTower(W + 40 + i * SPACING, i ? s.towers[i - 1].gapY : null));
   particles = [];
   newBest = false;
@@ -296,7 +296,7 @@ function die() {
   if (mode !== "watch" && s.score > best) { best = s.score; saveBest(best); newBest = true; }   // the AI's runs don't count as yours
   const fresh = Object.keys(SKINS).filter(id => SKINS[id].need > before && unlocked(id));
   s.newSkin = fresh.length ? fresh[fresh.length - 1] : null;
-  if (s.ghost && s.ghost.online && s.ghost.alive) { state = "spectate"; return; }   // online: keep watching until your rival crashes too
+  if (s.ghost && s.ghost.online && s.ghost.alive) { state = "spectate"; s.deadDist = distance; return; }   // online: keep watching until your rival crashes too
   showGameOver();
 }
 // online: the round ends when both storks are down
@@ -539,7 +539,9 @@ function drawCloud(t, night) {
 }
 function drawStork(b = s) {
   const ghost = b !== s, down = ghost ? !b.alive : state === "over" || state === "spectate";
-  const x = STORK_X, y = lerp(b.prevY, b.y, alpha);
+  // online, after you crash your stork stays where it fell and scrolls away with the ground while you watch your rival
+  const x = !ghost && s.deadDist != null ? STORK_X - (rd() - s.deadDist) : STORK_X, y = lerp(b.prevY, b.y, alpha);
+  if (x < -40) return;
   const target = down ? b.angle + 0.15 * frameScale : Math.max(-0.45, Math.min(0.8, b.vy / 12));
   b.angle = down ? Math.min(target, 1.6) : lerp(b.angle, target, 1 - Math.pow(0.75, frameScale));
   ctx.save();
