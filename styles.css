@@ -137,8 +137,10 @@
   html.app .app-tools.gone { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 180ms ease, visibility 0s 180ms; }
   html.app .app-levels { display: flex; top: 67%; }
   /* tall phone screens: the corner buttons go to the real corners, the mode switch to the bottom */
-  html.app .app-tools { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 14px); left: 14px; }
-  html.app .skin-btn { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 14px); right: 14px; }
+  /* the corners of the game area: the screen edge on phones, the edge of the game on wider screens (tablets) */
+  html.app { --side: max(14px, calc(50vw - min(100svh * 2 / 3, 100vw) / 2 + 14px)); }
+  html.app .app-tools { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 14px); left: var(--side); }
+  html.app .skin-btn { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 14px); right: var(--side); }
   html.app #modes { position: fixed; top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 26px); }
   html.app .modes { max-width: calc(100vw - 16px); }
   .round-btn { width: 2.6em; height: 2.6em; padding: 0; border-radius: 50%; display: grid; place-items: center; color: #f5eee2;
