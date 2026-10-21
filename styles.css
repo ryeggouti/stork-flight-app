@@ -127,6 +127,20 @@
   .skin-btn:hover .brush { transform: rotate(-14deg); }
   .skin-btn canvas { position: static; inset: auto; width: 2.4em; height: 2.4em; cursor: inherit; }   /* not the full-size game canvas rule */
   .skin-btn.gone { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 180ms ease, visibility 0s 180ms; }
+  /* Android app: no bottom bar; sound, help and about sit top left, the difficulty where the level pill was */
+  .app-tools, .app-levels, .app-only { display: none; }
+  html.app .web-only { display: none; }
+  html.app li.app-only { display: list-item; }
+  html.app { --bar-h: 0px; }
+  html.app .bar { display: none; }
+  html.app .app-tools { display: flex; position: absolute; top: 2.2%; left: 3%; gap: 0.45em; transition: opacity 220ms ease, visibility 0s; }
+  html.app .app-tools.gone { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 180ms ease, visibility 0s 180ms; }
+  html.app .app-levels { display: flex; top: 67%; }
+  .round-btn { width: 2.6em; height: 2.6em; padding: 0; border-radius: 50%; display: grid; place-items: center; color: #f5eee2;
+    background: rgba(20,16,12,0.55); border: 1px solid rgba(243,241,234,0.18); transition: transform 160ms ease, background 160ms; }
+  .round-btn:active { transform: scale(0.93); }
+  .round-btn span { font: 400 1.35em/1 var(--display); }
+  .round-btn svg { width: 1.2em; height: 1.2em; }
   .skin-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 14px; }
   .skin-card { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 8px; border-radius: 14px;
     background: rgba(255,255,255,0.05); border: 2px solid transparent; color: var(--fg); }

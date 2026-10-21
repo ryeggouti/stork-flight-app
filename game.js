@@ -65,9 +65,11 @@ function toggleMute() {
   ensureAudio(); sfx("click"); syncSoundBtn();
 }
 function syncSoundBtn() {
-  const b = document.getElementById("soundBtn");
+  for (const id of ["soundBtn", "appSound"]) {
+  const b = document.getElementById(id);
   b.setAttribute("aria-pressed", String(!muted)); b.setAttribute("aria-label", muted ? "Sound off" : "Sound on");
   b.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/>${muted ? '<path d="M17 9l5 6M22 9l-5 6"/>' : '<path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>'}</svg>`;
+  }
 }
 
 const MEDALS = [
@@ -135,6 +137,7 @@ function buzz(kind) {
     if (p && p.catch) p.catch(() => vibrate(kind));
   } catch (e) { vibrate(kind); }
 }
+const APP = document.documentElement.classList.contains("app");   // running as the Android app
 let mode = "solo";                                     // "solo", "race" or "watch"
 // how much practice each opponent had (training steps), from section 8 of the notebook
 const OPP_STEPS = { "0": [220000, 240000, 600000, 1000000], "0.5": [240000, 300000, 400000, 1000000], "1": [400000, 700000, 800000, 900000] };
@@ -376,7 +379,7 @@ function fitCanvas() {
   document.getElementById("over").style.fontSize = (shown / H * 16) + "px";
   document.getElementById("modes").style.fontSize = (shown / H * 16) + "px";
   document.getElementById("opps").style.fontSize = (shown / H * 16) + "px";
-  document.getElementById("skinBtn").style.fontSize = (shown / H * 16) + "px";
+  for (const id of ["skinBtn", "appTools", "appLevels"]) document.getElementById(id).style.fontSize = (shown / H * 16) + "px";
   ctx.setTransform(k, 0, 0, k, 0, OFF_T * k);
 }
 fitCanvas();
@@ -746,7 +749,7 @@ function drawUI(now) {
     ctx.globalAlpha = 1 - capA; text("Fly between the minarets and the storm clouds.", W / 2, 380, 15, "#e8e2d6", "center", "SANS");
     ctx.globalAlpha = capA; text(capLabel, W / 2, 350, 14, "#e8e2d6", "center", "SANS");
     ctx.restore();
-    pill(LEVEL(), W / 2, 420, true);
+    if (!APP) pill(LEVEL(), W / 2, 420, true);   // in the app, real Easy / Medium / Hard buttons sit here
     const pulse = 0.6 + 0.4 * Math.sin(now / 300);
     ctx.save(); ctx.globalAlpha = REDUCED ? 1 : pulse;
     const verb = mode === "watch" ? "watch" : mode === "race" ? "race" : "fly";
@@ -949,7 +952,14 @@ document.querySelectorAll("[data-page]").forEach(t => t.addEventListener("click"
 $("oRetry").addEventListener("click", () => { if (canReact()) startFlight(); });
 $("oHome").addEventListener("click", () => { if (canReact()) toMenu(); });
 document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => showPage(null)));
-document.getElementById("soundBtn").addEventListener("click", e => { toggleMute(); e.currentTarget.blur(); });
+for (const id of ["soundBtn", "appSound"]) document.getElementById(id).addEventListener("click", e => { toggleMute(); e.currentTarget.blur(); });
+// Android back button (app only): close a page, leave the run, or exit from the start screen
+const APP_PLUGIN = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App;
+if (APP_PLUGIN) APP_PLUGIN.addListener("backButton", () => {
+  if (panelOpen) showPage(null);
+  else if (state !== "ready") toMenu();
+  else APP_PLUGIN.exitApp();
+});
 syncSoundBtn();
 document.querySelectorAll("[data-d]").forEach(b => b.addEventListener("click", () => {
   changeDifficulty(+b.dataset.d);
@@ -1012,8 +1022,10 @@ function loop(now) {
   if (modesEl.classList.contains("gone") === showModes) modesEl.classList.toggle("gone", !showModes);
   const showOpps = showModes && mode !== "solo";
   if (oppsEl.classList.contains("gone") === showOpps) oppsEl.classList.toggle("gone", !showOpps);
-  const sb = $("skinBtn");
-  if (sb.classList.contains("gone") === showModes) sb.classList.toggle("gone", !showModes);
+  for (const id of ["skinBtn", "appTools", "appLevels"]) {
+    const el = $(id);
+    if (el.classList.contains("gone") === showModes) el.classList.toggle("gone", !showModes);
+  }
   requestAnimationFrame(loop);
 }
 reset();

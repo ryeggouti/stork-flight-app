@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>/* inside the Android app (or with ?app=1 to preview it) the bottom bar is replaced by buttons on the start screen */
+if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElement.classList.add("app");</script>
 <title>Stork Flight</title>
 <meta name="description" content="A stork flies over a Moroccan city at sunset. The same game an AI learned to play with reinforcement learning.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,7 +24,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Stork Flight">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="styles.css?v=15">
+<link rel="stylesheet" href="styles.css?v=17">
 </head>
 <body>
 <div class="stage-wrap">
@@ -87,10 +89,12 @@
     <section class="panel" id="how" aria-label="How to play">
       <h2>How to <span>play</span></h2>
       <ul>
-        <li><kbd>Space</kbd> <kbd>↑</kbd> click or tap: the stork flaps once.</li>
+        <li class="web-only"><kbd>Space</kbd> <kbd>↑</kbd> click or tap: the stork flaps once.</li>
+        <li class="app-only">Tap the screen: the stork flaps once.</li>
         <li>Let go and it glides down. Gravity never stops.</li>
         <li>Fly through the gap between the minaret and the storm cloud. Touch either one, the ground or the top of the sky, and it's over.</li>
-        <li><kbd>M</kbd> sound on or off · <kbd>Esc</kbd> back to the menu</li>
+        <li class="web-only"><kbd>M</kbd> sound on or off · <kbd>Esc</kbd> back to the menu</li>
+        <li class="app-only">The back button closes a page or leaves a run.</li>
         <li><b>Race the AI:</b> a see-through stork flies next to you. It's an AI I trained, and it sees only 5 numbers. Pick your opponent, from Beginner to Seasoned.</li>
         <li><b>Watch the AI:</b> the AI flies alone.</li>
       </ul>
@@ -112,6 +116,18 @@
       <p style="margin-top:12px">Tip: tap in small, steady rhythms. Big panicky bursts shoot you into the clouds.</p>
       <button class="back" data-close>Let's fly</button>
     </section>
+
+    <!-- Android app only: the bottom bar is hidden there, so its controls live on the start screen -->
+    <div class="app-tools gone" id="appTools">
+      <button class="round-btn" id="appSound" type="button" aria-label="Sound on"></button>
+      <button class="round-btn" data-page="how" type="button" aria-label="How to play"><span>?</span></button>
+      <button class="round-btn" data-page="about" type="button" aria-label="About"><span>i</span></button>
+    </div>
+    <div class="modes app-levels gone" id="appLevels" role="group" aria-label="Difficulty">
+      <button type="button" data-d="0" aria-pressed="true">Easy</button>
+      <button type="button" data-d="0.5" aria-pressed="false">Medium</button>
+      <button type="button" data-d="1" aria-pressed="false">Hard</button>
+    </div>
 
     <button class="skin-btn gone" id="skinBtn" type="button" aria-label="Choose your stork" title="Your stork"><canvas id="skinIcon" width="96" height="96" aria-hidden="true"></canvas>
       <svg class="brush" viewBox="0 0 24 24" aria-hidden="true">
@@ -170,8 +186,8 @@
   <button class="sound" id="soundBtn" aria-label="Sound on" aria-pressed="true"></button>
 </nav>
 
-<script src="networks.js?v=15"></script>
-<script src="game.js?v=15"></script>
+<script src="networks.js?v=17"></script>
+<script src="game.js?v=17"></script>
 <script>
 // Installable app: show "Install app" when the browser offers it (the offline helper is registered at the end of game.js)
 let installPrompt = null;
