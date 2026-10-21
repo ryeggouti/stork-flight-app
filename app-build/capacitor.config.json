@@ -1,0 +1,9 @@
+{
+  "appId": "io.github.ryeggouti.storkflight",
+  "appName": "Stork Flight",
+  "webDir": "www",
+  "backgroundColor": "#1c1a17",
+  "android": {
+    "adjustMarginsForEdgeToEdge": "auto"
+  }
+}

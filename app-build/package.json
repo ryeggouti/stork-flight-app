@@ -1,0 +1,12 @@
+{
+  "name": "stork-flight-android",
+  "private": true,
+  "description": "Builds the Android app with the game files inside it",
+  "dependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/core": "^7.0.0",
+    "@fontsource/fredoka": "^5.0.0",
+    "@fontsource/lilita-one": "^5.0.0"
+  }
+}

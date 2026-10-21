@@ -1004,6 +1004,7 @@ reset();
 (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => requestAnimationFrame(t => { last = t; loop(t); }));
 
 // Installable app: save the game's files for offline play (not when opened as a local file)
-if ("serviceWorker" in navigator && location.protocol !== "file:") {
+// (not inside the Android app, where the files are already on the phone)
+if ("serviceWorker" in navigator && location.protocol !== "file:" && !window.Capacitor) {
   addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 }

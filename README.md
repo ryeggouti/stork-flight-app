@@ -8,7 +8,11 @@ A free arcade game for Android and the browser: fly a white stork between minare
 - **Race the AI:** four opponents, from Beginner to Seasoned.
 - **Watch the AI:** see a trained stork fly on its own.
 
-Every drawing and sound is made with code. It works offline, and the Android package is built with [PWABuilder](https://www.pwabuilder.com/).
+Every drawing and sound is made with code, and it works offline.
+
+## Android app
+
+The Android app has the whole game packed inside it, so it doesn't need the website. It is built with [Capacitor](https://capacitorjs.com/) by a GitHub Actions workflow (`.github/workflows/android.yml`): the files in `app-build/` copy the game in, bundle the fonts and add the app icons.
 
 ---
 
