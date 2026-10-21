@@ -797,7 +797,7 @@ function drawUI(now) {
     ctx.restore();
     if (!APP) pill(LEVEL(), W / 2, 420, true);   // in the app, real Easy / Medium / Hard buttons sit here
     // the pulsing "tap!" hint already says how to start, so only 1v1 gets a line here: what happens next
-    const status = mode === "online" ? (NET.connected ? (NET.host ? "Tap to start the match" : "Waiting for the host to start") : "Tap to open the lobby") : null;
+    const status = mode === "online" && NET.connected ? (NET.host ? "Tap to start the match" : "Waiting for the host to start") : null;   // not connected: the "Open the lobby" button says it
     if (status) {
       const pulse = 0.6 + 0.4 * Math.sin(now / 300);
       ctx.save(); ctx.globalAlpha = REDUCED ? 1 : pulse; text(status, W / 2, 472, 22, "#fff"); ctx.restore();

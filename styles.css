@@ -108,7 +108,7 @@
     background: #ffb35c; transform: scaleX(0); transition: transform 200ms ease; }
   #modes button[aria-pressed="true"]::after { transform: scaleX(1); }
   /* in the app: a tab bar along the bottom of the screen */
-  html.app #modes { left: 0; right: 0; transform: none; max-width: none; justify-content: space-evenly; border-radius: 0;
+  html.app #modes { left: calc(var(--side) - 14px); right: calc(var(--side) - 14px); transform: none; max-width: none; justify-content: space-evenly; border-radius: 0;
     bottom: 0; padding: 0 0 env(safe-area-inset-bottom, 0px); background: rgba(20,16,12,0.7); border-top: 1px solid rgba(243,241,234,0.08); }
   html.app #modes.gone { transform: translateY(0.5em); }
   html.app #modes button { flex: 1; padding: 1em 0.5em 1.15em; }
