@@ -4,6 +4,6 @@
   "webDir": "www",
   "backgroundColor": "#1c1a17",
   "android": {
-    "adjustMarginsForEdgeToEdge": "auto"
+    "adjustMarginsForEdgeToEdge": "disable"
   }
 }
