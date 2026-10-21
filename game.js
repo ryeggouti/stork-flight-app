@@ -1030,7 +1030,7 @@ function setMode(m) {
   mode = m;
   try { localStorage.setItem("stork-mode", m); } catch (e) {}
   document.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === m)));
-  if (state === "ready") reset();
+  // no reset here: the start screen doesn't depend on the mode, and a reset would snap the floating stork back to the middle
   ensureAudio(); sfx("click");
 }
 document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => { setMode(b.dataset.mode); b.blur(); }));

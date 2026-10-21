@@ -1,9 +1,9 @@
 /* Stork Flight offline helper (service worker).
    The first visit saves the game's files; after that it opens even without internet.
    Bump VERSION whenever the game files change, so players get the new version. */
-const VERSION = "stork-flight-app-v18";
+const VERSION = "stork-flight-app-v19";
 const CORE = [
-  "./", "index.html", "styles.css?v=28", "networks.js?v=28", "game.js?v=28", "online.js?v=28",
+  "./", "index.html", "styles.css?v=29", "networks.js?v=29", "game.js?v=29", "online.js?v=29",
   "manifest.webmanifest", "favicon.svg", "favicon-32.png", "apple-touch-icon.png", "icon-192.png", "icon-512.png",
 ];
 
