@@ -377,9 +377,10 @@ function fitCanvas() {
   const k = Math.min(3, Math.max(1, unit) * (devicePixelRatio || 1));
   canvas.width = Math.round(W * k); canvas.height = Math.round((H + OFF_T + OFF_B) * k);
   document.getElementById("over").style.fontSize = (shown / H * 16) + "px";
-  document.getElementById("modes").style.fontSize = (shown / H * 16) + "px";
-  document.getElementById("opps").style.fontSize = (shown / H * 16) + "px";
-  for (const id of ["skinBtn", "appTools", "appLevels"]) document.getElementById(id).style.fontSize = (shown / H * 16) + "px";
+  // in the app, the start-screen buttons are 25% bigger so they're easy to hit with a thumb
+  const btn = shown / H * 16 * (document.documentElement.classList.contains("app") ? 1.25 : 1);
+  for (const id of ["modes", "skinBtn", "appTools", "appLevels"]) document.getElementById(id).style.fontSize = btn + "px";
+  document.getElementById("opps").style.fontSize = Math.min(btn, shown / H * 16 * 1.1) + "px";   // four opponents: only a little bigger, so the row still fits
   ctx.setTransform(k, 0, 0, k, 0, OFF_T * k);
 }
 fitCanvas();
