@@ -15,6 +15,21 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         hideSystemBars();
+        fixTextSize();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        fixTextSize();
+    }
+
+    // Android scales web text with the phone's font-size setting, which made the game's buttons
+    // too big to fit. The game sizes everything itself, so keep the text at 100%.
+    private void fixTextSize() {
+        try {
+            if (getBridge() != null && getBridge().getWebView() != null) getBridge().getWebView().getSettings().setTextZoom(100);
+        } catch (Exception e) { }
     }
 
     @Override
