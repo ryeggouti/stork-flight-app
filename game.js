@@ -778,6 +778,10 @@ function drawUI(now) {
   }
   if (state === "ready") {
     ctx.save(); ctx.translate(W / 2, 214); ctx.rotate(-3 * Math.PI / 180);   // tilted, like the page headings
+    // a solid drop shadow under the whole title, like the headings on the pages and the logo in the bar
+    ctx.font = `80px ${DISPLAY}`; ctx.textAlign = "center"; ctx.lineJoin = "round";
+    ctx.fillStyle = ctx.strokeStyle = "rgba(24,12,4,0.55)"; ctx.lineWidth = 80 * 0.09 * 2;
+    for (const [w, y] of [["Stork", -36], ["Flight", 36]]) { ctx.strokeText(w, 0, y + 10); ctx.fillText(w, 0, y + 10); }
     text("Stork", 0, -36, 80, "#fff");
     text("Flight", 0, 36, 80, "#f0a24a");
     ctx.restore();
@@ -994,6 +998,7 @@ $("oUnlockTry").addEventListener("click", e => {
 });
 function showPage(id) {
   if (id === "skins") { renderSkins(); }
+  if (id && $(id)) $(id).scrollTop = 0;   // a page always opens at the top, not where you left it
   document.querySelectorAll(".panel").forEach(p => p.classList.toggle("open", p.id === id));
   document.querySelectorAll("[data-page]").forEach(t => t.toggleAttribute("aria-current", t.dataset.page === (id && id !== "skins" ? id : "game")));
   document.querySelectorAll("[data-page][aria-current]").forEach(t => t.setAttribute("aria-current", "page"));
