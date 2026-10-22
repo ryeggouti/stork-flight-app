@@ -167,6 +167,8 @@
   .round-btn span { font: 400 1.35em/1 var(--display); }
   .round-btn svg { width: 1.2em; height: 1.2em; }
   /* online lobby */
+  .panel p.credit { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+  .panel p.credit b { color: var(--fg); }
   .lobby-name { display: grid; gap: 6px; margin-top: 16px; font: 400 18px var(--display); color: var(--accent); }
   .lobby-name input { width: 11em; font: 600 20px var(--sans); background: #12100d; color: #fff; border: 2px solid #4a433b; border-radius: 12px;
     padding: 6px 12px; -webkit-user-select: text; user-select: text; }

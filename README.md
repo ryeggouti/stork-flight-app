@@ -16,4 +16,4 @@ The Android app has the whole game packed inside it, so it doesn't need the webs
 
 ---
 
-Made with help from an AI coding assistant. MIT License.
+Made by **ryeggouti**, 2026, with help from an AI coding assistant. MIT License.
