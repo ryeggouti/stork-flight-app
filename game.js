@@ -137,7 +137,7 @@ function buzz(kind) {
     if (p && p.catch) p.catch(() => vibrate(kind));
   } catch (e) { vibrate(kind); }
 }
-const APP = document.documentElement.classList.contains("app");   // running as the Android app
+const APP = document.documentElement.classList.contains("app");   // phone layout: the Android app, or a phone browser
 let countEnd = 0;                                        // online countdown: when the run starts
 let mode = "solo";                                     // "solo", "race" or "watch"
 // how much practice each opponent had (training steps), from section 8 of the notebook

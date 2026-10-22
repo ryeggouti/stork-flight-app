@@ -3,8 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script>/* inside the Android app (or with ?app=1 to preview it) the bottom bar is replaced by buttons on the start screen */
-if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElement.classList.add("app");</script>
+<script>/* Phone layout (no bottom bar; buttons on the start screen and a tab bar): in the Android app and in phone browsers.
+   ?app=1 forces it (to preview on a computer), ?app=0 turns it off (to see the website layout on a phone). */
+(function () {
+  var q = location.search, html = document.documentElement, native = !!window.Capacitor;
+  var phone = matchMedia("(pointer: coarse)").matches && Math.min(screen.width, screen.height) < 600;   // touch screen, phone-sized (not a tablet)
+  if (native || /[?&]app=1/.test(q) || (phone && !/[?&]app=0/.test(q))) html.classList.add("app");
+  if (native) html.classList.add("native");   // the real Android app: it has a back button
+})();</script>
 <title>Stork Flight</title>
 <meta name="description" content="A stork flies over a Moroccan city at sunset. The same game an AI learned to play with reinforcement learning.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,7 +30,7 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Stork Flight">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="styles.css?v=30">
+<link rel="stylesheet" href="styles.css?v=31">
 </head>
 <body>
 <div class="stage-wrap">
@@ -108,7 +114,7 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
         <li>Let go and it glides down. Gravity never stops.</li>
         <li>Fly through the gap between the minaret and the storm cloud. Touch either one, the ground or the top of the sky, and it's over.</li>
         <li class="web-only"><kbd>M</kbd> sound on or off · <kbd>Esc</kbd> back to the menu</li>
-        <li class="app-only">The back button closes a page or leaves a run.</li>
+        <li class="native-only">The back button closes a page or leaves a run.</li>
         <li><b>Race the AI:</b> a see-through stork flies next to you. It's an AI I trained, and it sees only 5 numbers. Pick your opponent, from Beginner to Seasoned.</li>
         <li><b>1v1:</b> race a friend on another device. One of you makes a room and shares the 4-letter code, the other joins. Same course, same time: the last stork flying wins.</li>
       </ul>
@@ -200,9 +206,9 @@ if (window.Capacitor || /[?&]app=1/.test(location.search)) document.documentElem
   <button class="sound" id="soundBtn" aria-label="Sound on" aria-pressed="true"></button>
 </nav>
 
-<script src="networks.js?v=30"></script>
-<script src="game.js?v=30"></script>
-<script src="online.js?v=30"></script>
+<script src="networks.js?v=31"></script>
+<script src="game.js?v=31"></script>
+<script src="online.js?v=31"></script>
 <script>
 // Installable app: show "Install app" when the browser offers it (the offline helper is registered at the end of game.js)
 let installPrompt = null;

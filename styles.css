@@ -144,6 +144,8 @@
   .app-tools, .app-levels, .app-only { display: none; }
   html.app .web-only { display: none; }
   html.app li.app-only { display: list-item; }
+  .native-only { display: none; }
+  html.native li.native-only { display: list-item; }
   html.app { --bar-h: 0px; }
   html.app .bar { display: none; }
   html.app .app-tools { display: flex; position: absolute; top: 2.2%; left: 3%; gap: 0.45em; transition: opacity 220ms ease, visibility 0s; }
