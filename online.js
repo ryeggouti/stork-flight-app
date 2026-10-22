@@ -125,12 +125,16 @@ function onMessage(m) {
   if (m.t === "hello") { NET.rivalSkin = typeof m.skin === "string" && SKINS[m.skin] ? m.skin : "classic"; NET.rivalName = cleanName(m.name); renderLobby(); }
   else if (m.t === "name") { NET.rivalName = cleanName(m.name); renderLobby(); }
   else if (m.t === "start" && !NET.host) beginRound(m.seed >>> 0, m.d);
-  else if (m.t === "s") { NET.pos.set(m.k, { y: +m.y, f: m.f }); NET.lastK = Math.max(NET.lastK, m.k); }
-  else if (m.t === "dead") { NET.rivalDeadK = m.k; NET.rivalScore = m.score | 0; }
-  else if (m.t === "rematch") {
+  else if (m.t === "s") {   // never trust incoming numbers blindly
+    const k = m.k | 0, y = +m.y;
+    if (k > 0 && isFinite(y)) { NET.pos.set(k, { y: Math.max(0, Math.min(H, y)), f: m.f ? 1 : 0 }); NET.lastK = Math.max(NET.lastK, k); }
+  }
+  else if (m.t === "dead") { NET.rivalDeadK = Math.max(0, m.k | 0); NET.rivalScore = Math.max(0, m.score | 0); }
+  else if (m.t === "rematch") {   // the rival wants another round (from the card, or by tapping the start screen)
     NET.rivalRematch = true;
     if (NET.host && NET.wantRematch) hostStart();
     else if (state === "over") $("oVerdict").textContent = `${rivalName()} wants a rematch!`;
+    renderLobby();
   }
   else if (m.t === "bye") rivalLeft();
 }
@@ -186,20 +190,27 @@ function netRematch() {
   if (!NET.connected) return;
   NET.wantRematch = true; netSend({ t: "rematch" });
   if (NET.host && NET.rivalRematch) hostStart();
-  else { $("oRetry").querySelector("span").textContent = "Waiting…"; $("oVerdict").textContent = `Waiting for ${rivalName()}…`; }
+  else if (state === "over") { $("oRetry").querySelector("span").textContent = "Waiting…"; $("oVerdict").textContent = `Waiting for ${rivalName()}…`; }
+  renderLobby();
 }
 // tapping the start screen in 1v1 mode
 function netTapReady() {
   if (NET.connected && NET.host) hostStart();
-  else if (!NET.connected) showPage("online");
+  else if (NET.connected) { if (!NET.wantRematch) { netRematch(); sfx("click"); } }   // guest: "I'm ready" (accepts a rematch the host already asked for)
+  else showPage("online");
 }
+// switching to another app mid-run pauses the game, so online it counts as a crash (your rival isn't left waiting)
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && mode === "online" && NET.connected && state === "play") { netSend({ t: "dead", k: s.k, score: s.score }); die(); }
+});
 
 /* ---------- the lobby page ---------- */
 function setStatus(st, msg = "") { NET.status = st; NET.error = msg; renderLobby(); }
 function fail(msg) { netLeave(true); setStatus("error", msg); }
 function renderLobby() {
   const el = $("lobby"), st = NET.status;
-  $("lobbyBtn").textContent = NET.connected ? `${rivalName()} is here · ${NET.host ? "Start" : "Lobby"}` : "Open the lobby";
+  $("lobbyBtn").textContent = !NET.connected ? "Open the lobby"
+    : NET.host ? (NET.rivalRematch ? `${rivalName()} is ready · Start` : `${rivalName()} is here · Start`) : `${rivalName()} is here · Lobby`;
   if (st === "creating" || st === "joining") {
     el.innerHTML = `<p class="lobby-wait">${st === "creating" ? "Making a room…" : `Looking for room ${NET.code}…`}</p><button class="lobby-btn ghost" id="lCancel" type="button">Cancel</button>`;
   } else if (st === "hosting") {

@@ -801,7 +801,9 @@ function drawUI(now) {
     ctx.restore();
     if (!APP) pill(LEVEL(), W / 2, 420, true);   // in the app, real Easy / Medium / Hard buttons sit here
     // the pulsing "tap!" hint already says how to start, so only 1v1 gets a line here: what happens next
-    const status = mode === "online" && NET.connected ? (NET.host ? "Tap to start the match" : "Waiting for the host to start") : null;   // not connected: the "Open the lobby" button says it
+    // 1v1, connected: what happens when you tap (not connected: the "Open the lobby" button says it)
+    const status = mode === "online" && NET.connected ? (NET.host ? (NET.rivalRematch ? `${rivalName()} is ready · tap to start` : "Tap to start the match")
+      : NET.rivalRematch ? `${rivalName()} wants a rematch · tap to play` : NET.wantRematch ? "Ready! Waiting for the host to start" : "Tap when you're ready") : null;
     if (status) {
       const pulse = 0.6 + 0.4 * Math.sin(now / 300);
       ctx.save(); ctx.globalAlpha = REDUCED ? 1 : pulse; text(status, W / 2, 472, 22, "#fff"); ctx.restore();
@@ -929,6 +931,7 @@ function changeDifficulty(newDifficulty) {
 
 const canReact = () => performance.now() - deathTime > 900;
 addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;   // typing a name or a room code isn't a game shortcut
   if (e.target.tagName === 'BUTTON' && (e.code === 'Space' || e.code === 'Enter')) return;
   if (e.code === "KeyM") { toggleMute(); return; }
   if (panelOpen) { if (e.code === "Escape") showPage(null); return; }
