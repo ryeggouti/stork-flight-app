@@ -8,7 +8,9 @@
 (function () {
   var q = location.search, html = document.documentElement, native = !!window.Capacitor;
   var phone = matchMedia("(pointer: coarse)").matches && Math.min(screen.width, screen.height) < 600;   // touch screen, phone-sized (not a tablet)
-  if (native || /[?&]app=1/.test(q) || (phone && !/[?&]app=0/.test(q))) html.classList.add("app");
+  var framed = true; try { framed = window.self !== window.top; } catch (e) {}   // shown inside another page, like an itch.io embed
+  if (native || /[?&]app=1/.test(q) || ((phone || framed) && !/[?&]app=0/.test(q))) html.classList.add("app");
+  if (framed) html.classList.add("framed");
   if (native) html.classList.add("native");   // the real Android app: it has a back button
 })();</script>
 <title>Stork Flight</title>
@@ -30,7 +32,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Stork Flight">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="styles.css?v=34">
+<link rel="stylesheet" href="styles.css?v=35">
 </head>
 <body>
 <div class="stage-wrap">
@@ -207,9 +209,9 @@
   <button class="sound" id="soundBtn" aria-label="Sound on" aria-pressed="true"></button>
 </nav>
 
-<script src="networks.js?v=34"></script>
-<script src="game.js?v=34"></script>
-<script src="online.js?v=34"></script>
+<script src="networks.js?v=35"></script>
+<script src="game.js?v=35"></script>
+<script src="online.js?v=35"></script>
 <script>
 // Installable app: show "Install app" when the browser offers it (the offline helper is registered at the end of game.js)
 let installPrompt = null;
