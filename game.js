@@ -889,8 +889,11 @@ function toMenu() {
   if (mode === "online" && (state === "play" || state === "count")) netSend({ t: "dead", k: s.k, score: s.score });   // leaving a run online counts as a crash
   courseRandom = Math.random; hideGameOver(); reset(); distance = prevDistance = 0; state = "ready"; sfx("click"); }
 
+// during a run (countdown, flying, watching your rival) the level can't change and pages can't open:
+// it would restart your run, and online it would pause your stork so your rival thinks you left
+const inRun = () => state === "play" || state === "count" || state === "spectate";
 function changeDifficulty(newDifficulty) {
-  if (trans) return;
+  if (trans || inRun()) return;
   if (newDifficulty === difficulty) return;
   
   if (panelOpen) {
@@ -997,6 +1000,7 @@ $("oUnlockTry").addEventListener("click", e => {
   e.currentTarget.textContent = "Equipped"; e.currentTarget.disabled = true;
 });
 function showPage(id) {
+  if (id && inRun()) return;
   if (id === "skins") { renderSkins(); }
   if (id && $(id)) $(id).scrollTop = 0;   // a page always opens at the top, not where you left it
   document.querySelectorAll(".panel").forEach(p => p.classList.toggle("open", p.id === id));
@@ -1079,6 +1083,8 @@ function loop(now) {
   frameScale = Math.min(3, frameMs / (1000 / 60));
   draw(now);
   // both rows stay put while the course changes; they only fade when the screen really changes
+  const busy = inRun();   // grey out the bottom bar (all but the sound button) during a run
+  if (document.body.classList.contains("busy") !== busy) document.body.classList.toggle("busy", busy);
   const showModes = state === "ready" && !panelOpen;
   if (modesEl.classList.contains("gone") === showModes) modesEl.classList.toggle("gone", !showModes);
   const showOpps = showModes && (mode === "race" || mode === "watch");

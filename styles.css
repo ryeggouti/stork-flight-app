@@ -49,6 +49,9 @@
   .tab[aria-current="page"] { background: rgba(255,255,255,0.08); color: var(--fg); }
   .tab:hover { color: var(--fg); }
   .spacer { flex: 1; }
+  /* during a run: the bar is greyed out and can't be clicked, except the sound button */
+  .bar .tab, .bar .levels-pick { transition: opacity 200ms ease; }
+  body.busy .bar .tab, body.busy .bar .levels-pick { opacity: 0.35; pointer-events: none; }
   .tab.install { color: var(--accent); }
   .tab.install[hidden] { display: none; }
   .levels-pick { display: inline-flex; background: rgba(0,0,0,0.25); border-radius: 999px; padding: 3px; }
