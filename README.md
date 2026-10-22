@@ -1,5 +1,7 @@
 # Stork Flight
 
+Part 3 of [Stork Flight](https://github.com/ryeggouti/stork-flight), where I trained AIs to play this game with reinforcement learning.
+
 A free arcade game for Android and the browser: fly a white stork between minarets and storm clouds over a Moroccan city at sunset, and race AI storks trained with reinforcement learning.
 
 **[▶ Play in the browser](https://ryeggouti.github.io/stork-flight-app/)**
