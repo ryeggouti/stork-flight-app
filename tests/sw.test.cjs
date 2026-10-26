@@ -19,7 +19,7 @@ function worker({ saved, response, offline = false, full = false } = {}) {
     self: { addEventListener: (name, handler) => { handlers[name] = handler; } },
     caches: {
       open: async name => {
-        assert.equal(name, "stork-flight-app-v28");
+        assert.equal(name, "stork-flight-app-v29");
         return cache;
       },
       match: () => { throw new Error("Must not search other apps' caches"); },

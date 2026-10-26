@@ -406,7 +406,7 @@ function fitCanvas() {
   canvas.style.top = -(OFF_T * unit) + "px"; canvas.style.height = ((H + OFF_T + OFF_B) * unit) + "px";
   const k = Math.min(3, Math.max(1, unit) * (devicePixelRatio || 1));
   canvas.width = Math.round(W * k); canvas.height = Math.round((H + OFF_T + OFF_B) * k);
-  document.getElementById("over").style.fontSize = document.documentElement.classList.contains("app") ? "1rem" : (shown / H * 16) + "px";
+  document.getElementById("over").style.fontSize = (shown / H * 16) + "px";
   // in the app, the start-screen buttons are 25% bigger so they're easy to hit with a thumb
   const btn = shown / H * 16 * (document.documentElement.classList.contains("app") ? 1.25 : 1);
   for (const id of ["modes", "skinBtn", "appTools", "appLevels"]) document.getElementById(id).style.fontSize = btn + "px";
@@ -1042,7 +1042,7 @@ function setMode(m) {
 }
 document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => { setMode(b.dataset.mode); b.blur(); }));
 document.querySelectorAll("[data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
-const modesEl = $("modes"), oppsEl = $("opps"), startControlsEl = document.querySelector(".start-controls");
+const modesEl = $("modes"), oppsEl = $("opps");
 function setOpponent(o) {
   opponent = o;
   try { localStorage.setItem("stork-opponent", o); } catch (e) {}
@@ -1089,7 +1089,6 @@ function loop(now) {
   const busy = inRun();   // grey out the bottom bar (all but the sound button) during a run
   if (document.body.classList.contains("busy") !== busy) document.body.classList.toggle("busy", busy);
   const showModes = state === "ready" && !panelOpen;
-  startControlsEl.hidden = !showModes;
   if (modesEl.classList.contains("gone") === showModes) modesEl.classList.toggle("gone", !showModes);
   const showOpps = showModes && (mode === "race" || mode === "watch");
   const lobby = $("lobbyRow"), showLobby = showModes && mode === "online";

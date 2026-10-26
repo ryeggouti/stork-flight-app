@@ -24,14 +24,11 @@ public class MainActivity extends BridgeActivity {
         fixTextSize();
     }
 
-    // Respect the phone's text-size preference, including changes made while the app was paused.
-    // Menus wrap and scroll independently of the canvas and its game physics.
+    // Android scales web text with the phone's font-size setting, which made the game's buttons
+    // too big to fit. The game sizes everything itself, so keep the text at 100%.
     private void fixTextSize() {
         try {
-            if (getBridge() != null && getBridge().getWebView() != null) {
-                getBridge().getWebView().getSettings().setTextZoom(
-                    Math.round(getResources().getConfiguration().fontScale * 100));
-            }
+            if (getBridge() != null && getBridge().getWebView() != null) getBridge().getWebView().getSettings().setTextZoom(100);
         } catch (Exception e) { }
     }
 
