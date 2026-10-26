@@ -32,7 +32,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Stork Flight">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="styles.css?v=36">
+<link rel="stylesheet" href="styles.css?v=37">
 </head>
 <body>
 <div class="stage-wrap">
@@ -82,6 +82,7 @@
       </section>
     </div>
 
+    <div class="start-controls">
     <div class="modes opps gone" id="opps" role="group" aria-label="AI opponent">
       <button type="button" data-opp="Beginner">Beginner</button>
       <button type="button" data-opp="Intermediate">Intermediate</button>
@@ -91,10 +92,16 @@
     <div class="modes opps gone" id="lobbyRow" role="group" aria-label="Online match">
       <button type="button" id="lobbyBtn">Open the lobby</button>
     </div>
+    <div class="modes app-levels gone" id="appLevels" role="group" aria-label="Difficulty">
+      <button type="button" data-d="0" aria-pressed="true">Easy</button>
+      <button type="button" data-d="0.5" aria-pressed="false">Medium</button>
+      <button type="button" data-d="1" aria-pressed="false">Hard</button>
+    </div>
     <div class="modes" id="modes" role="group" aria-label="Game mode">
       <button type="button" data-mode="solo" aria-pressed="true">Solo</button>
       <button type="button" data-mode="race" aria-pressed="false">Race the AI</button>
       <button type="button" data-mode="online" aria-pressed="false">1v1</button>
+    </div>
     </div>
 
     <section class="panel" id="online" aria-label="Online 1v1">
@@ -144,11 +151,6 @@
       <button class="round-btn" id="appSound" type="button" aria-label="Sound on"></button>
       <button class="round-btn" data-page="how" type="button" aria-label="How to play"><span>?</span></button>
       <button class="round-btn" data-page="about" type="button" aria-label="About"><span>i</span></button>
-    </div>
-    <div class="modes app-levels gone" id="appLevels" role="group" aria-label="Difficulty">
-      <button type="button" data-d="0" aria-pressed="true">Easy</button>
-      <button type="button" data-d="0.5" aria-pressed="false">Medium</button>
-      <button type="button" data-d="1" aria-pressed="false">Hard</button>
     </div>
 
     <button class="skin-btn gone" id="skinBtn" type="button" aria-label="Choose your stork" title="Your stork"><canvas id="skinIcon" width="96" height="96" aria-hidden="true"></canvas>
@@ -210,9 +212,9 @@
   <button class="sound" id="soundBtn" aria-label="Sound on" aria-pressed="true"></button>
 </nav>
 
-<script src="networks.js?v=36"></script>
-<script src="game.js?v=36"></script>
-<script src="online.js?v=36"></script>
+<script src="networks.js?v=37"></script>
+<script src="game.js?v=37"></script>
+<script src="online.js?v=37"></script>
 <script>
 // Installable app: show "Install app" when the browser offers it (the offline helper is registered at the end of game.js)
 let installPrompt = null;
